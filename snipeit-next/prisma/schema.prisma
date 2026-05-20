@@ -1,0 +1,646 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int       @id @default(autoincrement())
+  firstName        String
+  lastName         String
+  username         String    @unique
+  email            String?   @unique
+  emailVerified    DateTime?
+  password         String?
+  activated        Boolean   @default(true)
+  avatar           String?
+  phone            String?
+  jobtitle         String?
+  employeeNum      String?
+  notes            String?
+  permissions      Json?
+  isSuperUser      Boolean   @default(false)
+  isAdmin          Boolean   @default(false)
+  twoFactorEnabled Boolean   @default(false)
+  remote           Boolean   @default(false)
+  vip              Boolean   @default(false)
+  startDate        DateTime?
+  endDate          DateTime?
+  lastLogin        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  companyId    Int?
+  departmentId Int?
+  locationId   Int?
+  managerId    Int?
+  createdBy    Int?
+
+  company    Company?    @relation(fields: [companyId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+  location   Location?   @relation("UserLocation", fields: [locationId], references: [id])
+  manager    User?       @relation("UserManager", fields: [managerId], references: [id])
+  reports    User[]      @relation("UserManager")
+
+  assignedAssets        Asset[]               @relation("AssetAssignedUser")
+  createdAssets         Asset[]               @relation("AssetCreatedBy")
+  licenseSeatUsers      LicenseSeat[]
+  accessoryCheckouts    AccessoryCheckout[]
+  consumableAssignments ConsumableAssignment[]
+  actionLogs            ActionLog[]           @relation("ActionLogUser")
+  targetActionLogs      ActionLog[]           @relation("ActionLogTarget")
+  groups                GroupUser[]
+
+  @@index([companyId])
+  @@index([deletedAt])
+}
+
+model Group {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  permissions Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  users       GroupUser[]
+}
+
+model GroupUser {
+  userId  Int
+  groupId Int
+  user    User  @relation(fields: [userId], references: [id])
+  group   Group @relation(fields: [groupId], references: [id])
+
+  @@id([userId, groupId])
+}
+
+model Company {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  phone     String?
+  fax       String?
+  email     String?
+  notes     String?
+  image     String?
+  color     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  users       User[]
+  assets      Asset[]
+  licenses    License[]
+  accessories Accessory[]
+  consumables Consumable[]
+  components  Component[]
+  locations   Location[]
+  departments Department[]
+
+  @@index([deletedAt])
+}
+
+model Department {
+  id         Int       @id @default(autoincrement())
+  name       String
+  phone      String?
+  fax        String?
+  email      String?
+  notes      String?
+  image      String?
+  managerId  Int?
+  companyId  Int?
+  locationId Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  company  Company?  @relation(fields: [companyId], references: [id])
+  location Location? @relation("DepartmentLocation", fields: [locationId], references: [id])
+  users    User[]
+
+  @@index([deletedAt])
+}
+
+model Location {
+  id        Int       @id @default(autoincrement())
+  name      String
+  address   String?
+  address2  String?
+  city      String?
+  state     String?
+  country   String?
+  zip       String?
+  phone     String?
+  fax       String?
+  ldapOu    String?
+  parentId  Int?
+  managerId Int?
+  companyId Int?
+  currency  String?   @default("USD")
+  image     String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  parent      Location?    @relation("LocationParent", fields: [parentId], references: [id])
+  children    Location[]   @relation("LocationParent")
+  company     Company?     @relation(fields: [companyId], references: [id])
+  users       User[]       @relation("UserLocation")
+  departments Department[] @relation("DepartmentLocation")
+  assets      Asset[]      @relation("AssetLocation")
+  rtdAssets   Asset[]      @relation("AssetRtdLocation")
+
+  @@index([deletedAt])
+}
+
+model Manufacturer {
+  id           Int       @id @default(autoincrement())
+  name         String    @unique
+  url          String?
+  supportUrl   String?
+  supportPhone String?
+  supportEmail String?
+  image        String?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  assetModels AssetModel[]
+  licenses    License[]
+  accessories Accessory[]
+  consumables Consumable[]
+  components  Component[]
+
+  @@index([deletedAt])
+}
+
+model Supplier {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  address   String?
+  address2  String?
+  city      String?
+  state     String?
+  country   String?
+  zip       String?
+  phone     String?
+  fax       String?
+  email     String?
+  contact   String?
+  url       String?
+  notes     String?
+  image     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  assets      Asset[]
+  licenses    License[]
+  accessories Accessory[]
+  consumables Consumable[]
+  components  Component[]
+
+  @@index([deletedAt])
+}
+
+model Category {
+  id                Int       @id @default(autoincrement())
+  name              String
+  type              String
+  image             String?
+  eula              String?
+  useDefaultEula    Boolean   @default(false)
+  requireAcceptance Boolean   @default(false)
+  checkinEmail      Boolean   @default(false)
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  assetModels AssetModel[]
+  accessories Accessory[]
+  consumables Consumable[]
+  components  Component[]
+  licenses    License[]
+
+  @@unique([name, deletedAt])
+  @@index([deletedAt])
+}
+
+model Depreciation {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  months    Int
+  type      String   @default("straight-line")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assetModels AssetModel[]
+  licenses    License[]
+}
+
+model StatusLabel {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  type         String
+  color        String?
+  showInNav    Boolean  @default(true)
+  defaultLabel Boolean  @default(false)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assets Asset[]
+}
+
+model CustomFieldset {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fields      CustomField[]
+  assetModels AssetModel[]
+}
+
+model CustomField {
+  id             Int      @id @default(autoincrement())
+  name           String
+  dbColumn       String   @unique
+  type           String   @default("text")
+  format         String?
+  fieldValues    String?
+  required       Boolean  @default(false)
+  showInEmail    Boolean  @default(false)
+  showInListView Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  fieldsetId Int?
+  fieldset   CustomFieldset? @relation(fields: [fieldsetId], references: [id])
+}
+
+model AssetModel {
+  id             Int       @id @default(autoincrement())
+  name           String
+  modelNumber    String?
+  eol            Int?
+  minAmt         Int?
+  notes          String?
+  image          String?
+  requestable    Boolean   @default(false)
+  requireSerial  Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  categoryId     Int?
+  manufacturerId Int?
+  depreciationId Int?
+  fieldsetId     Int?
+
+  category     Category?      @relation(fields: [categoryId], references: [id])
+  manufacturer Manufacturer?  @relation(fields: [manufacturerId], references: [id])
+  depreciation Depreciation?  @relation(fields: [depreciationId], references: [id])
+  fieldset     CustomFieldset? @relation(fields: [fieldsetId], references: [id])
+  assets       Asset[]
+
+  @@index([deletedAt])
+}
+
+model Asset {
+  id               Int       @id @default(autoincrement())
+  assetTag         String    @unique
+  name             String?
+  serial           String?
+  orderNumber      String?
+  notes            String?
+  image            String?
+  purchaseCost     Decimal?  @db.Decimal(19, 4)
+  purchaseDate     DateTime?
+  warrantyMonths   Int?
+  warrantyExpires  DateTime?
+  lastCheckout     DateTime?
+  lastCheckin      DateTime?
+  expectedCheckin  DateTime?
+  lastAuditDate    DateTime?
+  nextAuditDate    DateTime?
+  assetEolDate     DateTime?
+  eolExplicit      Boolean   @default(false)
+  byod             Boolean   @default(false)
+  requestable      Boolean   @default(false)
+  customFields     Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  deletedAt        DateTime?
+
+  modelId        Int?
+  statusId       Int?
+  companyId      Int?
+  locationId     Int?
+  rtdLocationId  Int?
+  supplierId     Int?
+  assignedToId   Int?
+  assignedToType String?
+  assignedAssetId Int?
+  createdById    Int?
+
+  model       AssetModel?  @relation(fields: [modelId], references: [id])
+  status      StatusLabel? @relation(fields: [statusId], references: [id])
+  company     Company?     @relation(fields: [companyId], references: [id])
+  location    Location?    @relation("AssetLocation", fields: [locationId], references: [id])
+  rtdLocation Location?    @relation("AssetRtdLocation", fields: [rtdLocationId], references: [id])
+  supplier    Supplier?    @relation(fields: [supplierId], references: [id])
+  assignedUser User?       @relation("AssetAssignedUser", fields: [assignedToId], references: [id])
+  assignedAsset Asset?     @relation("AssetAssignedAsset", fields: [assignedAssetId], references: [id])
+  subAssets   Asset[]      @relation("AssetAssignedAsset")
+  createdBy   User?        @relation("AssetCreatedBy", fields: [createdById], references: [id])
+
+  maintenances         Maintenance[]
+  actionLogs           ActionLog[]          @relation("AssetActionLogs")
+  componentAssignments ComponentAssignment[]
+  licenseSeats         LicenseSeat[]
+
+  @@index([assetTag])
+  @@index([serial])
+  @@index([modelId])
+  @@index([statusId])
+  @@index([companyId])
+  @@index([deletedAt])
+}
+
+model License {
+  id             Int       @id @default(autoincrement())
+  name           String
+  serial         String?
+  licenseEmail   String?
+  licensedTo     String?
+  seats          Int       @default(1)
+  freeSeats      Int       @default(1)
+  notes          String?
+  orderNumber    String?
+  purchaseCost   Decimal?  @db.Decimal(19, 4)
+  purchaseDate   DateTime?
+  expirationDate DateTime?
+  terminationDate DateTime?
+  reassignable   Boolean   @default(true)
+  maintained     Boolean   @default(false)
+  minAmt         Int?
+  image          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  categoryId     Int?
+  manufacturerId Int?
+  supplierId     Int?
+  companyId      Int?
+  depreciationId Int?
+
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+  company      Company?      @relation(fields: [companyId], references: [id])
+  depreciation Depreciation? @relation(fields: [depreciationId], references: [id])
+  seats_rel    LicenseSeat[]
+  actionLogs   ActionLog[]   @relation("LicenseActionLogs")
+
+  @@index([deletedAt])
+}
+
+model LicenseSeat {
+  id          Int       @id @default(autoincrement())
+  seatId      Int?
+  notes       String?
+  assignedAt  DateTime?
+  unavailable Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  licenseId Int
+  userId    Int?
+  assetId   Int?
+
+  license License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  user    User?    @relation(fields: [userId], references: [id])
+  asset   Asset?   @relation(fields: [assetId], references: [id])
+
+  @@index([licenseId])
+}
+
+model Accessory {
+  id           Int       @id @default(autoincrement())
+  name         String
+  qty          Int       @default(0)
+  minAmt       Int?
+  orderNumber  String?
+  purchaseCost Decimal?  @db.Decimal(19, 4)
+  purchaseDate DateTime?
+  modelNumber  String?
+  notes        String?
+  image        String?
+  requestable  Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  categoryId     Int?
+  companyId      Int?
+  supplierId     Int?
+  manufacturerId Int?
+  locationId     Int?
+
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  company      Company?      @relation(fields: [companyId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  checkouts    AccessoryCheckout[]
+  actionLogs   ActionLog[]   @relation("AccessoryActionLogs")
+
+  @@index([deletedAt])
+}
+
+model AccessoryCheckout {
+  id          Int      @id @default(autoincrement())
+  qty         Int      @default(1)
+  notes       String?
+  assignedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accessoryId Int
+  userId      Int
+
+  accessory Accessory @relation(fields: [accessoryId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([accessoryId])
+  @@index([userId])
+}
+
+model Consumable {
+  id           Int       @id @default(autoincrement())
+  name         String
+  qty          Int       @default(0)
+  minAmt       Int?
+  orderNumber  String?
+  purchaseCost Decimal?  @db.Decimal(19, 4)
+  purchaseDate DateTime?
+  itemNo       String?
+  modelNumber  String?
+  notes        String?
+  image        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  categoryId     Int?
+  companyId      Int?
+  supplierId     Int?
+  manufacturerId Int?
+  locationId     Int?
+
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  company      Company?      @relation(fields: [companyId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  assignments  ConsumableAssignment[]
+  actionLogs   ActionLog[]   @relation("ConsumableActionLogs")
+
+  @@index([deletedAt])
+}
+
+model ConsumableAssignment {
+  id           Int      @id @default(autoincrement())
+  qty          Int      @default(1)
+  notes        String?
+  assignedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  consumableId Int
+  userId       Int
+
+  consumable Consumable @relation(fields: [consumableId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@index([consumableId])
+}
+
+model Component {
+  id           Int       @id @default(autoincrement())
+  name         String
+  qty          Int       @default(0)
+  minAmt       Int?
+  serial       String?
+  orderNumber  String?
+  purchaseCost Decimal?  @db.Decimal(19, 4)
+  purchaseDate DateTime?
+  notes        String?
+  image        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  categoryId     Int?
+  companyId      Int?
+  supplierId     Int?
+  manufacturerId Int?
+  locationId     Int?
+
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  company      Company?      @relation(fields: [companyId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  assignments  ComponentAssignment[]
+  actionLogs   ActionLog[]   @relation("ComponentActionLogs")
+
+  @@index([deletedAt])
+}
+
+model ComponentAssignment {
+  id          Int      @id @default(autoincrement())
+  qty         Int      @default(1)
+  notes       String?
+  assignedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  componentId Int
+  assetId     Int
+
+  component Component @relation(fields: [componentId], references: [id])
+  asset     Asset     @relation(fields: [assetId], references: [id])
+
+  @@index([componentId])
+  @@index([assetId])
+}
+
+model Maintenance {
+  id                    Int       @id @default(autoincrement())
+  title                 String
+  notes                 String?
+  supplierCost          Decimal?  @db.Decimal(19, 4)
+  startDate             DateTime
+  completionDate        DateTime?
+  isWarranty            Boolean   @default(false)
+  assetMaintenanceType  String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  assetId Int
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+}
+
+model ActionLog {
+  id           Int       @id @default(autoincrement())
+  action       String
+  note         String?
+  logMeta      Json?
+  acceptedAt   DateTime?
+  declinedAt   DateTime?
+  actionDate   DateTime  @default(now())
+  remoteIp     String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  userId       Int?
+  assetId      Int?
+  licenseId    Int?
+  accessoryId  Int?
+  consumableId Int?
+  componentId  Int?
+  targetId     Int?
+  targetType   String?
+
+  user       User?       @relation("ActionLogUser", fields: [userId], references: [id])
+  asset      Asset?      @relation("AssetActionLogs", fields: [assetId], references: [id])
+  license    License?    @relation("LicenseActionLogs", fields: [licenseId], references: [id])
+  accessory  Accessory?  @relation("AccessoryActionLogs", fields: [accessoryId], references: [id])
+  consumable Consumable? @relation("ConsumableActionLogs", fields: [consumableId], references: [id])
+  component  Component?  @relation("ComponentActionLogs", fields: [componentId], references: [id])
+  target     User?       @relation("ActionLogTarget", fields: [targetId], references: [id])
+
+  @@index([userId])
+  @@index([assetId])
+  @@index([actionDate])
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
