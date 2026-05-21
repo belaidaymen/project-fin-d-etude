@@ -25,7 +25,7 @@ export default async function AccessoryDetailPage({ params }: { params: { id: st
   });
   if (!acc) notFound();
 
-  const available = acc.qty - (acc.minQty ?? 0);
+  const available = acc.qty - acc.checkouts.length;
 
   return (
     <>

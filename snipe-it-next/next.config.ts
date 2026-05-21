@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["*"],
+  allowedDevOrigins: [
+    "*.spock.replit.dev",
+    "*.replit.dev",
+    "*.replit.app",
+    "*",
+  ],
   experimental: {
     serverActions: {
       allowedOrigins: ["*"],

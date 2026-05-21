@@ -7,7 +7,7 @@ import {
   Laptop, FileText, Package, Cpu, Users, MapPin, Tag,
   Building, Truck, Briefcase, BarChart2, Settings,
   ChevronDown, ChevronRight, Layers, Monitor,
-  ShoppingCart, Wrench
+  ShoppingCart, Wrench, TrendingDown
 } from "lucide-react";
 
 interface NavItem {
@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
       { label: "Categories", href: "/categories" },
       { label: "Manufacturers", href: "/manufacturers" },
       { label: "Suppliers", href: "/suppliers" },
-      { label: "Depreciation", href: "/depreciations" },
+      { label: "Depreciations", href: "/depreciations" },
       { label: "Status Labels", href: "/statuslabels" },
       { label: "Maintenances", href: "/maintenances" },
     ],
@@ -95,11 +95,6 @@ const peopleItems: NavItem[] = [
     label: "Companies",
     href: "/companies",
     icon: <Building size={16} />,
-  },
-  {
-    label: "Groups",
-    href: "/groups",
-    icon: <Layers size={16} />,
   },
 ];
 
