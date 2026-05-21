@@ -11,52 +11,21 @@ export async function POST(req: NextRequest) {
   try {
     const userCount = await prisma.user.count();
     if (userCount > 0) {
-      return NextResponse.json({ error: "Setup already completed" }, { status: 400 });
+      return NextResponse.json({ error: "Configuration déjà effectuée." }, { status: 400 });
     }
-
-    const body = await req.json();
-    const { firstName, lastName, username, email, password, siteName } = body;
-
-    if (!firstName || !lastName || !username || !email || !password) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 });
+    const { prenom, nom, username, email, password, siteName } = await req.json();
+    if (!prenom || !nom || !username || !email || !password) {
+      return NextResponse.json({ error: "Tous les champs sont requis." }, { status: 400 });
     }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await prisma.$transaction(async tx => {
-      await tx.user.create({
-        data: {
-          firstName,
-          lastName,
-          username,
-          email,
-          password: hashedPassword,
-          isSuperAdmin: true,
-          activated: true,
-        },
-      });
-
-      await tx.setting.create({
-        data: {
-          siteName: siteName || "Snipe-IT",
-        },
-      });
-
-      await tx.statuslabel.createMany({
-        data: [
-          { name: "Ready to Deploy", statusType: "deployable", deployable: true, color: "#337AB7" },
-          { name: "Pending", statusType: "pending", pending: true, color: "#f0ad4e" },
-          { name: "Archived", statusType: "archived", archived: true, color: "#777777" },
-          { name: "Broken / Not Repairable", statusType: "undeployable", color: "#d9534f" },
-          { name: "Lost / Stolen", statusType: "undeployable", color: "#d9534f" },
-          { name: "Out for Repair", statusType: "undeployable", color: "#f39c12" },
-        ],
-      });
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.user.create({
+      data: { prenom, nom, username, email, password: hashed, role: "ADMIN", actif: true },
     });
-
+    await prisma.setting.create({
+      data: { siteName: siteName || "GestActifs", siteSubtitle: "Gestion des Actifs Universitaires", primaryColor: "#3c8dbc", currency: "DZD", timezone: "Africa/Algiers" },
+    });
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("Setup error:", err);
-    return NextResponse.json({ error: err.message || "Setup failed" }, { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

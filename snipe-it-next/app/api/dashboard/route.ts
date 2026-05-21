@@ -7,29 +7,14 @@ export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [
-    totalAssets, deployedAssets, pendingAssets, archivedAssets,
-    totalLicenses, usedLicenseSeats, totalLicenseSeats,
-    totalAccessories, totalConsumables, totalComponents, totalUsers,
-  ] = await Promise.all([
-    prisma.asset.count({ where: { deletedAt: null } }),
-    prisma.asset.count({ where: { deletedAt: null, assignedToId: { not: null } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { statusType: "pending" } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { statusType: "archived" } } }),
-    prisma.license.count({ where: { deletedAt: null } }),
-    prisma.licenseSeat.count({ where: { assigned: true } }),
-    prisma.licenseSeat.count(),
-    prisma.accessory.count({ where: { deletedAt: null } }),
-    prisma.consumable.count({ where: { deletedAt: null } }),
-    prisma.component.count({ where: { deletedAt: null } }),
-    prisma.user.count({ where: { deletedAt: null } }),
+  const [totalEquipements, equipementsBon, totalAffectations, demandesEnAttente, maintenancesEnCours, totalMouvements] = await Promise.all([
+    prisma.equipement.count(),
+    prisma.equipement.count({ where: { etat: "BON" } }),
+    prisma.affectation.count({ where: { actif: true } }),
+    prisma.demande.count({ where: { statut: "EN_ATTENTE" } }),
+    prisma.maintenance.count({ where: { statut: "EN_COURS" } }),
+    prisma.mouvement.count(),
   ]);
 
-  return NextResponse.json({
-    totalAssets, deployedAssets, pendingAssets, archivedAssets,
-    undeployedAssets: totalAssets - deployedAssets,
-    totalLicenses, usedLicenseSeats, totalLicenseSeats,
-    availableLicenseSeats: totalLicenseSeats - usedLicenseSeats,
-    totalAccessories, totalConsumables, totalComponents, totalUsers,
-  });
+  return NextResponse.json({ totalEquipements, equipementsBon, totalAffectations, demandesEnAttente, maintenancesEnCours, totalMouvements });
 }

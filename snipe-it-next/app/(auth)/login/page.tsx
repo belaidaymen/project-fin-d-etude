@@ -24,7 +24,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (result?.error) {
-      setError("Invalid username or password.");
+      setError("Identifiant ou mot de passe incorrect.");
     } else {
       router.push("/dashboard");
     }
@@ -34,10 +34,10 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-box">
         <div className="login-logo">
-          <a href="#"><b>Snipe</b>-IT</a>
+          <a href="#"><b>Gest</b>Actifs</a>
         </div>
         <div className="login-box-body">
-          <p className="login-box-msg">Sign in to start your session</p>
+          <p className="login-box-msg">Connectez-vous pour accéder à votre session</p>
 
           {error && (
             <div className="alert alert-danger" style={{ marginBottom: 15 }}>
@@ -46,11 +46,11 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ position: "relative" }}>
+            <div className="form-group">
               <input
                 type="text"
                 className="form-control"
-                placeholder="Username or Email"
+                placeholder="Identifiant ou e-mail"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 required
@@ -61,7 +61,7 @@ export default function LoginPage() {
               <input
                 type={showPass ? "text" : "password"}
                 className="form-control"
-                placeholder="Password"
+                placeholder="Mot de passe"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
@@ -72,19 +72,11 @@ export default function LoginPage() {
                 onClick={() => setShowPass(p => !p)}
                 style={{
                   position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-                  background: "none", border: "none", cursor: "pointer", color: "#999",
-                  padding: 0,
+                  background: "none", border: "none", cursor: "pointer", color: "#999", padding: 0,
                 }}
               >
                 {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 15 }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 400, cursor: "pointer" }}>
-                <input type="checkbox" />
-                <span>Remember Me</span>
-              </label>
-              <a href="#" style={{ color: "#337ab7", fontSize: 13 }}>I forgot my password</a>
             </div>
             <button
               type="submit"
@@ -92,9 +84,17 @@ export default function LoginPage() {
               style={{ width: "100%", justifyContent: "center" }}
               disabled={loading}
             >
-              {loading ? <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> : "Sign In"}
+              {loading ? <span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> : "Se connecter"}
             </button>
           </form>
+
+          <div style={{ marginTop: 16, padding: "12px 16px", background: "#f9f9f9", borderRadius: 6, fontSize: 12, color: "#777" }}>
+            <strong style={{ display: "block", marginBottom: 6, color: "#555" }}>Comptes de démonstration :</strong>
+            <div>admin / admin123 — Administrateur</div>
+            <div>logisticien / password123 — Resp. Logistique</div>
+            <div>magasinier / password123 — Magasinier</div>
+            <div>cheflabo / password123 — Resp. Laboratoire</div>
+          </div>
         </div>
       </div>
     </div>

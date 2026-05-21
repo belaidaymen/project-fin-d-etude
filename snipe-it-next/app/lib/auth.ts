@@ -13,8 +13,8 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
+        username: { label: "Identifiant", type: "text" },
+        password: { label: "Mot de passe", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null;
@@ -25,8 +25,7 @@ export const authOptions: NextAuthOptions = {
               { username: credentials.username },
               { email: credentials.username },
             ],
-            activated: true,
-            deletedAt: null,
+            actif: true,
           },
         });
 
@@ -39,10 +38,10 @@ export const authOptions: NextAuthOptions = {
         if (!passwordValid) return null;
 
         return {
-          id: user.id,
+          id: String(user.id),
           email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          isSuperAdmin: user.isSuperAdmin,
+          name: `${user.prenom} ${user.nom}`,
+          role: user.role,
         };
       },
     }),
@@ -51,14 +50,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.isSuperAdmin = (user as any).isSuperAdmin;
+        token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         (session.user as any).id = token.id;
-        (session.user as any).isSuperAdmin = token.isSuperAdmin;
+        (session.user as any).role = token.role;
       }
       return session;
     },
