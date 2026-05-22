@@ -8,113 +8,83 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  const role = (session.user as any).role;
-
   const [
-    totalEquipements,
-    equipementsBon,
-    equipementsMoyen,
-    equipementsMauvais,
-    equipementsHorsService,
-    equipementsEnMaintenance,
-    equipementsReforme,
-    totalLocalisations,
-    totalAffectations,
-    totalDemandes,
-    demandesEnAttente,
-    demandesApprouvees,
-    totalMaintenances,
-    maintenancesEnCours,
-    totalMouvements,
-    totalUtilisateurs,
+    totalAssets,
+    deployedAssets,
+    undeployableAssets,
+    pendingAssets,
+    archivedAssets,
+    totalLicenses,
+    availableLicenseSeats,
+    totalAccessories,
+    totalConsumables,
+    totalComponents,
+    totalUsers,
+    recentActivity,
   ] = await Promise.all([
-    prisma.equipement.count(),
-    prisma.equipement.count({ where: { etat: "BON" } }),
-    prisma.equipement.count({ where: { etat: "MOYEN" } }),
-    prisma.equipement.count({ where: { etat: "MAUVAIS" } }),
-    prisma.equipement.count({ where: { etat: "HORS_SERVICE" } }),
-    prisma.equipement.count({ where: { etat: "EN_MAINTENANCE" } }),
-    prisma.equipement.count({ where: { etat: "REFORME" } }),
-    prisma.localisation.count({ where: { actif: true } }),
-    prisma.affectation.count({ where: { actif: true } }),
-    prisma.demande.count(),
-    prisma.demande.count({ where: { statut: "EN_ATTENTE" } }),
-    prisma.demande.count({ where: { statut: "APPROUVEE" } }),
-    prisma.maintenance.count(),
-    prisma.maintenance.count({ where: { statut: "EN_COURS" } }),
-    prisma.mouvement.count(),
-    prisma.user.count({ where: { actif: true } }),
+    prisma.asset.count({ where: { deletedAt: null } }),
+    prisma.asset.count({ where: { deletedAt: null, assignedToId: { not: null } } }),
+    prisma.asset.count({
+      where: { deletedAt: null, status: { statusType: "undeployable" } }
+    }),
+    prisma.asset.count({
+      where: { deletedAt: null, status: { statusType: "pending" } }
+    }),
+    prisma.asset.count({
+      where: { deletedAt: null, status: { statusType: "archived" } }
+    }),
+    prisma.license.count({ where: { deletedAt: null } }),
+    prisma.licenseSeat.count({ where: { assigned: false } }),
+    prisma.accessory.count({ where: { deletedAt: null } }),
+    prisma.consumable.count({ where: { deletedAt: null } }),
+    prisma.component.count({ where: { deletedAt: null } }),
+    prisma.user.count({ where: { deletedAt: null, activated: true } }),
+    prisma.actionlog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: { user: true, admin: true, asset: true },
+    }),
   ]);
 
-  const recentDemandes = await prisma.demande.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: { createdPar: true, equipement: true },
+  const assetsByModel = await prisma.assetModel.findMany({
+    where: { deletedAt: null },
+    include: { _count: { select: { assets: true } }, manufacturer: true },
+    orderBy: { assets: { _count: "desc" } },
+    take: 10,
   });
 
-  const recentMouvements = await prisma.mouvement.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: { equipement: true, createdPar: true, source: true, destination: true },
+  const assetsByCategory = await prisma.category.findMany({
+    where: { deletedAt: null, categoryType: "asset" },
+    include: { _count: { select: { assetModels: true } } },
+    take: 10,
   });
-
-  const equipementsParCategorie = await prisma.categorie.findMany({
-    include: { _count: { select: { equipements: true } } },
-    orderBy: { equipements: { _count: "desc" } },
-    take: 8,
-  });
-
-  const equipementsParEtat = [
-    { etat: "BON", count: equipementsBon, color: "#00a65a" },
-    { etat: "MOYEN", count: equipementsMoyen, color: "#f39c12" },
-    { etat: "MAUVAIS", count: equipementsMauvais, color: "#dd4b39" },
-    { etat: "HORS SERVICE", count: equipementsHorsService, color: "#777" },
-    { etat: "EN MAINTENANCE", count: equipementsEnMaintenance, color: "#00c0ef" },
-    { etat: "RÉFORMÉ", count: equipementsReforme, color: "#605ca8" },
-  ];
 
   return (
     <DashboardClient
-      role={role}
       stats={{
-        totalEquipements,
-        equipementsBon,
-        totalLocalisations,
-        totalAffectations,
-        totalDemandes,
-        demandesEnAttente,
-        demandesApprouvees,
-        totalMaintenances,
-        maintenancesEnCours,
-        totalMouvements,
-        totalUtilisateurs,
+        totalAssets,
+        deployedAssets,
+        undeployableAssets,
+        pendingAssets,
+        archivedAssets,
+        totalLicenses,
+        availableLicenseSeats,
+        totalAccessories,
+        totalConsumables,
+        totalComponents,
+        totalUsers,
       }}
-      recentDemandes={recentDemandes.map(d => ({
-        id: d.id,
-        titre: d.titre,
-        type: d.type,
-        statut: d.statut,
-        priorite: d.priorite,
-        createdAt: d.createdAt.toISOString(),
-        createdPar: `${d.createdPar.prenom} ${d.createdPar.nom}`,
-        equipement: d.equipement?.nom ?? null,
+      recentActivity={recentActivity.map(a => ({
+        id: a.id,
+        actionType: a.actionType,
+        note: a.note,
+        createdAt: a.createdAt.toISOString(),
+        user: a.user ? `${a.user.firstName} ${a.user.lastName}` : null,
+        admin: a.admin ? `${a.admin.firstName} ${a.admin.lastName}` : null,
+        assetTag: a.asset?.assetTag ?? null,
       }))}
-      recentMouvements={recentMouvements.map(m => ({
-        id: m.id,
-        type: m.type,
-        quantite: m.quantite,
-        dateOperation: m.dateOperation.toISOString(),
-        equipement: m.equipement.nom,
-        reference: m.equipement.reference,
-        createdPar: `${m.createdPar.prenom} ${m.createdPar.nom}`,
-        source: m.source?.nom ?? null,
-        destination: m.destination?.nom ?? null,
-      }))}
-      equipementsParCategorie={equipementsParCategorie.map(c => ({
-        nom: c.nom,
-        count: c._count.equipements,
-      }))}
-      equipementsParEtat={equipementsParEtat}
+      assetsByModel={assetsByModel.map(m => ({ name: m.name, count: m._count.assets }))}
+      assetsByCategory={assetsByCategory.map(c => ({ name: c.name, count: c._count.assetModels }))}
     />
   );
 }

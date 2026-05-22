@@ -36,9 +36,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {children}
       </div>
       <footer className="main-footer" style={{ marginLeft: sidebarCollapsed ? 0 : 230, transition: "margin-left .3s" }}>
-        <strong>GestActifs</strong> — Gestion des Actifs Universitaires
+        <strong>Copyright &copy; 2024 <a href="#">Snipe-IT</a>.</strong> All rights reserved.
         <div className="pull-right hidden-xs" style={{ float: "right" }}>
-          INFO_6 — <b>v1.0</b>
+          Version <b>7.0.0-nextjs</b>
         </div>
       </footer>
     </div>

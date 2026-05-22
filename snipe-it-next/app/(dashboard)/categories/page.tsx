@@ -3,7 +3,8 @@ import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/app/lib/prisma";
 import Link from "next/link";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import SimpleTable from "@/components/tables/SimpleTable";
 
 export default async function CategoriesPage({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const session = await getServerSession(authOptions);
@@ -13,95 +14,45 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
   const perPage = 20;
   const search = searchParams?.search ?? "";
 
-  const where: any = search ? { nom: { contains: search, mode: "insensitive" } } : {};
-
+  const where: any = { deletedAt: null, ...(search && { name: { contains: search, mode: "insensitive" } }) };
   const [items, total] = await Promise.all([
-    prisma.categorie.findMany({
-      where,
-      include: { _count: { select: { equipements: true } } },
-      orderBy: { nom: "asc" },
-      skip: (page - 1) * perPage,
-      take: perPage,
-    }),
-    prisma.categorie.count({ where }),
+    prisma.category.findMany({ where, include: { _count: { select: { assetModels: true, accessories: true, licenses: true } } }, orderBy: { name: "asc" }, skip: (page - 1) * perPage, take: perPage }),
+    prisma.category.count({ where }),
   ]);
 
-  const totalPages = Math.ceil(total / perPage);
+  const columns = ["Name", "Type", "Models", "Accessories", "Licenses", "EULA", "Accept", "Actions"];
+  const rows = items.map(item => ({
+    id: item.id,
+    cells: [
+      { type: "link" as const, value: item.name, href: `/categories/${item.id}` },
+      { type: "badge" as const, value: item.categoryType, color: "info" as const },
+      { type: "text" as const, value: item._count.assetModels.toString() },
+      { type: "text" as const, value: item._count.accessories.toString() },
+      { type: "text" as const, value: item._count.licenses.toString() },
+      { type: "text" as const, value: item.eulaText ? "Yes" : "No" },
+      { type: "text" as const, value: item.requireAcceptance ? "Yes" : "No" },
+    ],
+    editHref: `/categories/${item.id}/edit`,
+    deleteUrl: `/api/categories/${item.id}`,
+    deleteName: item.name,
+  }));
 
   return (
     <>
       <section className="content-header">
-        <h1>Catégories <small>Liste des catégories</small></h1>
-        <ol className="breadcrumb">
-          <li><Link href="/dashboard">Accueil</Link></li>
-          <li className="active">Catégories</li>
-        </ol>
+        <h1>Categories</h1>
+        <ol className="breadcrumb"><li><a href="#">Home</a></li><li className="active">Categories</li></ol>
       </section>
       <section className="content">
         <div className="box box-default">
           <div className="box-header with-border">
-            <h3 className="box-title">Liste des catégories</h3>
+            <h3 className="box-title">Category List</h3>
             <div style={{ float: "right" }}>
-              <Link href="/categories/create" className="btn btn-primary btn-sm">
-                <Plus size={14} style={{ marginRight: 4 }} />Nouvelle catégorie
-              </Link>
+              <Link href="/categories/create" className="btn btn-primary btn-sm"><Plus size={14} /> Create</Link>
             </div>
           </div>
           <div className="box-body" style={{ padding: 0 }}>
-            <div style={{ padding: "10px 15px", borderBottom: "1px solid #d2d6de", display: "flex", gap: 10 }}>
-              <form method="GET" style={{ display: "flex", gap: 6 }}>
-                <input name="search" className="form-control" style={{ width: 240 }} placeholder="Rechercher..." defaultValue={search} />
-                <button type="submit" className="btn btn-default btn-sm">Chercher</button>
-              </form>
-              <span style={{ marginLeft: "auto", color: "#777", fontSize: 13 }}>{total} catégorie{total !== 1 ? "s" : ""}</span>
-            </div>
-            <div className="table-responsive">
-              <table className="table table-striped table-hover">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Nom</th>
-                    <th>Description</th>
-                    <th>Équipements</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.length === 0 ? (
-                    <tr><td colSpan={5} style={{ textAlign: "center", padding: 30, color: "#999" }}>Aucune catégorie trouvée.</td></tr>
-                  ) : items.map((item, idx) => (
-                    <tr key={item.id}>
-                      <td style={{ color: "#777", fontSize: 12 }}>{(page - 1) * perPage + idx + 1}</td>
-                      <td>
-                        <Link href={`/categories/${item.id}`} style={{ color: "#337ab7", fontWeight: 600 }}>
-                          {item.nom}
-                        </Link>
-                      </td>
-                      <td style={{ color: "#555", fontSize: 13 }}>{item.description ?? "—"}</td>
-                      <td>
-                        <span className="badge" style={{ background: "#00a65a" }}>{item._count.equipements}</span>
-                      </td>
-                      <td>
-                        <Link href={`/categories/${item.id}/edit`} className="btn btn-xs btn-default" style={{ marginRight: 4 }}>
-                          <Pencil size={12} />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {totalPages > 1 && (
-              <div style={{ padding: "10px 15px", display: "flex", justifyContent: "flex-end" }}>
-                <ul className="pagination" style={{ margin: 0 }}>
-                  {page > 1 && <li><Link href={`/categories?page=${page - 1}${search ? `&search=${search}` : ""}`}>«</Link></li>}
-                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => i + 1).map(p => (
-                    <li key={p} className={p === page ? "active" : ""}><Link href={`/categories?page=${p}${search ? `&search=${search}` : ""}`}>{p}</Link></li>
-                  ))}
-                  {page < totalPages && <li><Link href={`/categories?page=${page + 1}${search ? `&search=${search}` : ""}`}>»</Link></li>}
-                </ul>
-              </div>
-            )}
+            <SimpleTable columns={columns} rows={rows} total={total} page={page} perPage={perPage} basePath="/categories" search={search} />
           </div>
         </div>
       </section>
