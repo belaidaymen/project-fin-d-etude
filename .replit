@@ -46,5 +46,5 @@ run = ["bash", "/home/runner/workspace/start.sh"]
 [userenv]
 
 [userenv.shared]
+NEXTAUTH_URL = "https://d0fb0769-654e-41f0-bde3-2c3deab42fec-00-zk4mvxbg0bqo.spock.replit.dev"
 NEXTAUTH_SECRET = "b9a17be840ef4104f784c259fdb78f058d562fc41993115eb3a2078a74b6984a"
-NEXTAUTH_URL = "https://2c82f3bc-6f7d-450d-afb3-091ac7cbba36-00-2itvgghgbvqww.worf.replit.dev"
