@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus, ArrowDownCircle, ArrowUpCircle, RefreshCw, X } from "lucide-react";
 
 interface Movement {
@@ -34,10 +35,17 @@ export default function MouvementsClient({
   assets: AssetRef[];
   locations: LocationRef[];
 }) {
+  const searchParams = useSearchParams();
   const [mouvements, setMouvements] = useState(initial);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [filterType, setFilterType] = useState("ALL");
+
+  useEffect(() => {
+    if (searchParams.get("action") === "new") {
+      setShowForm(true);
+    }
+  }, []);
   const [form, setForm] = useState({
     type: "ENTREE",
     assetId: assets[0]?.id ?? "",

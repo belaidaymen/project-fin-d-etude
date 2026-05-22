@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus, Pencil, X } from "lucide-react";
 
 interface Asset {
@@ -32,11 +33,18 @@ export default function EquipementsClient({
   locations: Ref[];
   statuses: StatusRef[];
 }) {
+  const searchParams = useSearchParams();
   const [assets, setAssets] = useState(initial);
   const [showForm, setShowForm] = useState(false);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("action") === "new") {
+      openNew();
+    }
+  }, []);
   const [form, setForm] = useState({
     assetTag: "", name: "", reference: "", serial: "",
     quantity: "1", purchaseCost: "", purchaseDate: "",
