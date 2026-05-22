@@ -125,6 +125,7 @@ model EquipmentRequest {
   id          String  @id @default(cuid())
   title       String
   description String?
+  type        String  @default("ACHAT")
   quantity    Int     @default(1)
   urgency     String  @default("NORMALE")
   status      String  @default("EN_ATTENTE")

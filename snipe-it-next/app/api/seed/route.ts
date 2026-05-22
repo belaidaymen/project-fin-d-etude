@@ -5,10 +5,88 @@ import bcrypt from "bcryptjs";
 export async function POST() {
   try {
     const userCount = await prisma.user.count();
+
+    // If users already exist, just refresh requests with proper types
     if (userCount > 0) {
-      return NextResponse.json({ message: "Données de démo déjà présentes" });
+      await prisma.equipmentRequest.deleteMany();
+
+      const [userLog, userLab1, userLab2, labInfo, labReseaux] = await Promise.all([
+        prisma.user.findFirst({ where: { username: "logistique" } }),
+        prisma.user.findFirst({ where: { username: "labo1" } }),
+        prisma.user.findFirst({ where: { username: "labo2" } }),
+        prisma.location.findFirst({ where: { name: "Laboratoire Informatique" } }),
+        prisma.location.findFirst({ where: { name: "Laboratoire Réseaux" } }),
+      ]);
+
+      if (userLab1 && labInfo && userLog) {
+        await prisma.equipmentRequest.createMany({
+          data: [
+            {
+              title: "Achat de 5 ordinateurs portables HP ProBook",
+              description: "Les ordinateurs actuels du Lab Informatique sont vétustes. Nous avons besoin de 5 nouveaux portables pour les TP de programmation du S2.",
+              type: "ACHAT",
+              quantity: 5,
+              urgency: "HAUTE",
+              status: "EN_ATTENTE",
+              requesterId: userLab1.id,
+              laboratoireId: labInfo.id,
+            },
+            {
+              title: "Remplacement du générateur de signal en panne (EQ-012)",
+              description: "Le générateur EQ-012 est en panne depuis 3 semaines. Les TP d'électronique sont bloqués. Remplacement urgent nécessaire.",
+              type: "REMPLACEMENT",
+              quantity: 1,
+              urgency: "HAUTE",
+              status: "EN_ATTENTE",
+              requesterId: userLab1.id,
+              laboratoireId: labInfo.id,
+            },
+            {
+              title: "Réforme du tableau interactif Smart Board (EQ-020)",
+              description: "Le tableau interactif EQ-020 est hors service depuis 2022, réparation impossible. Demande de mise en réforme et remplacement.",
+              type: "REFORME",
+              quantity: 1,
+              urgency: "NORMALE",
+              status: "EN_ATTENTE",
+              requesterId: userLab1.id,
+              laboratoireId: labInfo.id,
+            },
+            ...(userLab2 && labReseaux ? [
+              {
+                title: "Achat d'une imprimante laser pour le Laboratoire Réseaux",
+                description: "Besoin d'une imprimante pour imprimer les rapports de TP.",
+                type: "ACHAT",
+                quantity: 1,
+                urgency: "NORMALE",
+                status: "APPROUVEE",
+                requesterId: userLab2.id,
+                laboratoireId: labReseaux.id,
+                reviewerId: userLog.id,
+                reviewNote: "Demande approuvée. Commande en cours, livraison prévue dans 2 semaines.",
+                reviewedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+              },
+              {
+                title: "Remplacement des câbles HDMI défaillants",
+                description: "Remplacement des câbles HDMI usagés dans les salles de TP réseaux.",
+                type: "REMPLACEMENT",
+                quantity: 10,
+                urgency: "BASSE",
+                status: "REJETEE",
+                requesterId: userLab2.id,
+                laboratoireId: labReseaux.id,
+                reviewerId: userLog.id,
+                reviewNote: "Demande rejetée. Des câbles identiques sont disponibles en stock au magasin central. Merci de contacter le magasinier.",
+                reviewedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+              },
+            ] : []),
+          ],
+        });
+      }
+
+      return NextResponse.json({ success: true, message: "Demandes rafraîchies avec les types corrects" });
     }
 
+    // --- First-time full seed ---
     const [enService, enPanne, enMaintenance, reforme, enStock] = await Promise.all([
       prisma.statuslabel.create({ data: { name: "En service", color: "#00a65a" } }),
       prisma.statuslabel.create({ data: { name: "En panne", color: "#d9534f" } }),
@@ -43,38 +121,16 @@ export async function POST() {
 
     const [userLog, userMag, userLab1, userLab2] = await Promise.all([
       prisma.user.create({
-        data: {
-          firstName: "Ahmed", lastName: "Benali",
-          username: "logistique", email: "logistique@univ.dz",
-          password: hashLog, role: "LOGISTIQUE",
-          jobTitle: "Responsable Logistique", activated: true,
-        },
+        data: { firstName: "Ahmed", lastName: "Benali", username: "logistique", email: "logistique@univ.dz", password: hashLog, role: "LOGISTIQUE", jobTitle: "Responsable Logistique", activated: true },
       }),
       prisma.user.create({
-        data: {
-          firstName: "Karim", lastName: "Meziane",
-          username: "magasinier", email: "magasinier@univ.dz",
-          password: hashMag, role: "MAGASINIER",
-          jobTitle: "Magasinier", activated: true,
-        },
+        data: { firstName: "Karim", lastName: "Meziane", username: "magasinier", email: "magasinier@univ.dz", password: hashMag, role: "MAGASINIER", jobTitle: "Magasinier", activated: true },
       }),
       prisma.user.create({
-        data: {
-          firstName: "Fatima", lastName: "Hadj",
-          username: "labo1", email: "labo1@univ.dz",
-          password: hashLab1, role: "LABORATOIRE",
-          jobTitle: "Responsable Labo Informatique",
-          laboratoireId: labInfo.id, activated: true,
-        },
+        data: { firstName: "Fatima", lastName: "Hadj", username: "labo1", email: "labo1@univ.dz", password: hashLab1, role: "LABORATOIRE", jobTitle: "Responsable Labo Informatique", laboratoireId: labInfo.id, activated: true },
       }),
       prisma.user.create({
-        data: {
-          firstName: "Mohamed", lastName: "Saadi",
-          username: "labo2", email: "labo2@univ.dz",
-          password: hashLab2, role: "LABORATOIRE",
-          jobTitle: "Responsable Labo Réseaux",
-          laboratoireId: labReseaux.id, activated: true,
-        },
+        data: { firstName: "Mohamed", lastName: "Saadi", username: "labo2", email: "labo2@univ.dz", password: hashLab2, role: "LABORATOIRE", jobTitle: "Responsable Labo Réseaux", laboratoireId: labReseaux.id, activated: true },
       }),
     ]);
 
@@ -90,7 +146,7 @@ export async function POST() {
       prisma.asset.create({ data: { assetTag: "EQ-009", name: "HP ProBook 450 G8", reference: "HP-450-G8", serial: "SN2024009", categoryId: catOrdi.id, locationId: labReseaux.id, statusId: enService.id, purchaseCost: 85000, purchaseDate: new Date("2023-01-15") } }),
       prisma.asset.create({ data: { assetTag: "EQ-010", name: "Serveur Dell PowerEdge T440", reference: "PE-T440", serial: "SN2024010", categoryId: catServeur.id, locationId: labReseaux.id, statusId: enService.id, purchaseCost: 380000, purchaseDate: new Date("2021-11-05") } }),
       prisma.asset.create({ data: { assetTag: "EQ-011", name: "Oscilloscope Tektronix TDS2024C", reference: "TDS2024C", serial: "SN2024011", categoryId: catInstruments.id, locationId: labElec.id, statusId: enService.id, purchaseCost: 235000, purchaseDate: new Date("2020-05-12") } }),
-      prisma.asset.create({ data: { assetTag: "EQ-012", name: "Générateur de signal Keysight", reference: "33500B", serial: "SN2024012", categoryId: catInstruments.id, locationId: labElec.id, statusId: enPanne.id, purchaseCost: 185000, purchaseDate: new Date("2020-05-12") } }),
+      prisma.asset.create({ data: { assetTag: "EQ-012", name: "Générateur de signal Keysight 33500B", reference: "33500B", serial: "SN2024012", categoryId: catInstruments.id, locationId: labElec.id, statusId: enPanne.id, purchaseCost: 185000, purchaseDate: new Date("2020-05-12") } }),
       prisma.asset.create({ data: { assetTag: "EQ-013", name: "Multimètre Fluke 87V", reference: "FLUKE-87V", serial: "SN2024013", categoryId: catInstruments.id, locationId: labElec.id, statusId: enService.id, purchaseCost: 48000, purchaseDate: new Date("2021-02-18") } }),
       prisma.asset.create({ data: { assetTag: "EQ-014", name: "Multimètre Fluke 87V", reference: "FLUKE-87V", serial: "SN2024014", categoryId: catInstruments.id, locationId: labElec.id, statusId: enService.id, purchaseCost: 48000, purchaseDate: new Date("2021-02-18") } }),
       prisma.asset.create({ data: { assetTag: "EQ-015", name: "HP ProBook 450 G8", reference: "HP-450-G8", serial: "SN2024015", categoryId: catOrdi.id, locationId: stockRoom.id, statusId: enStock.id, purchaseCost: 85000, purchaseDate: new Date("2024-01-08") } }),
@@ -101,83 +157,73 @@ export async function POST() {
       prisma.asset.create({ data: { assetTag: "EQ-020", name: "Tableau interactif Smart Board", reference: "SMART-7086", serial: "SN2024020", categoryId: catInstruments.id, locationId: labMath.id, statusId: reforme.id, purchaseCost: 320000, purchaseDate: new Date("2018-03-22") } }),
     ]);
 
-    await Promise.all([
-      prisma.equipmentRequest.create({
-        data: {
-          title: "Achat de 5 ordinateurs portables HP",
-          description: "Les ordinateurs actuels du lab info sont vétustes. Nous avons besoin de 5 nouveaux portables pour les TP de programmation du S2.",
-          quantity: 5, urgency: "HAUTE", status: "EN_ATTENTE",
-          requesterId: userLab1.id, laboratoireId: labInfo.id,
+    await prisma.equipmentRequest.createMany({
+      data: [
+        {
+          title: "Achat de 5 ordinateurs portables HP ProBook",
+          description: "Les ordinateurs actuels du Lab Informatique sont vétustes. Nous avons besoin de 5 nouveaux portables pour les TP de programmation du S2.",
+          type: "ACHAT",
+          quantity: 5,
+          urgency: "HAUTE",
+          status: "EN_ATTENTE",
+          requesterId: userLab1.id,
+          laboratoireId: labInfo.id,
         },
-      }),
-      prisma.equipmentRequest.create({
-        data: {
-          title: "Remplacement du générateur de signal en panne",
+        {
+          title: "Remplacement du générateur de signal en panne (EQ-012)",
           description: "Le générateur EQ-012 est en panne depuis 3 semaines. Les TP d'électronique sont bloqués. Remplacement urgent nécessaire.",
-          quantity: 1, urgency: "HAUTE", status: "EN_ATTENTE",
-          requesterId: userLab1.id, laboratoireId: labInfo.id,
+          type: "REMPLACEMENT",
+          quantity: 1,
+          urgency: "HAUTE",
+          status: "EN_ATTENTE",
+          requesterId: userLab1.id,
+          laboratoireId: labInfo.id,
         },
-      }),
-      prisma.equipmentRequest.create({
-        data: {
-          title: "Imprimante pour impression des rapports TP",
-          description: "Besoin d'une imprimante laser pour le laboratoire réseaux afin d'imprimer les rapports de travaux pratiques.",
-          quantity: 1, urgency: "NORMALE", status: "APPROUVEE",
-          requesterId: userLab2.id, laboratoireId: labReseaux.id,
+        {
+          title: "Réforme du tableau interactif Smart Board (EQ-020)",
+          description: "Le tableau interactif EQ-020 est hors service depuis 2022, réparation impossible. Demande de mise en réforme et remplacement.",
+          type: "REFORME",
+          quantity: 1,
+          urgency: "NORMALE",
+          status: "EN_ATTENTE",
+          requesterId: userLab1.id,
+          laboratoireId: labInfo.id,
+        },
+        {
+          title: "Achat d'une imprimante laser pour le Laboratoire Réseaux",
+          description: "Besoin d'une imprimante pour imprimer les rapports de TP.",
+          type: "ACHAT",
+          quantity: 1,
+          urgency: "NORMALE",
+          status: "APPROUVEE",
+          requesterId: userLab2.id,
+          laboratoireId: labReseaux.id,
           reviewerId: userLog.id,
-          reviewNote: "Demande approuvée. Commande lancée, livraison prévue dans 2 semaines.",
+          reviewNote: "Approuvée. Commande en cours, livraison prévue dans 2 semaines.",
           reviewedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
         },
-      }),
-      prisma.equipmentRequest.create({
-        data: {
-          title: "Câbles HDMI pour projecteurs",
-          description: "Remplacement des câbles HDMI défaillants dans les salles de TP.",
-          quantity: 10, urgency: "BASSE", status: "REJETEE",
-          requesterId: userLab2.id, laboratoireId: labReseaux.id,
+        {
+          title: "Remplacement des câbles HDMI défaillants",
+          description: "Remplacement des câbles HDMI usagés dans les salles de TP réseaux.",
+          type: "REMPLACEMENT",
+          quantity: 10,
+          urgency: "BASSE",
+          status: "REJETEE",
+          requesterId: userLab2.id,
+          laboratoireId: labReseaux.id,
           reviewerId: userLog.id,
-          reviewNote: "Demande rejetée. Des câbles sont disponibles en stock au magasin central.",
+          reviewNote: "Rejetée. Des câbles identiques sont disponibles en stock au magasin central.",
           reviewedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
         },
-      }),
-    ]);
+      ],
+    });
 
     await Promise.all([
-      prisma.equipmentMovement.create({
-        data: {
-          type: "ENTREE", quantity: 1, reference: "BL-2024-001",
-          note: "Réception HP ProBook 450 G8 — bon de livraison fournisseur",
-          assetId: assets[0].id, toLocationId: labInfo.id, doneById: userMag.id,
-        },
-      }),
-      prisma.equipmentMovement.create({
-        data: {
-          type: "ENTREE", quantity: 1, reference: "BL-2024-002",
-          note: "Réception switch Cisco — nouvelle commande",
-          assetId: assets[17].id, toLocationId: stockRoom.id, doneById: userMag.id,
-        },
-      }),
-      prisma.equipmentMovement.create({
-        data: {
-          type: "SORTIE", quantity: 1, reference: "BS-2024-001",
-          note: "Envoi en réparation externe — générateur en panne",
-          assetId: assets[11].id, fromLocationId: labElec.id, doneById: userMag.id,
-        },
-      }),
-      prisma.equipmentMovement.create({
-        data: {
-          type: "TRANSFERT", quantity: 1, reference: "BT-2024-001",
-          note: "Transfert du stock vers Lab Informatique",
-          assetId: assets[14].id, fromLocationId: stockRoom.id, toLocationId: labInfo.id, doneById: userMag.id,
-        },
-      }),
-      prisma.equipmentMovement.create({
-        data: {
-          type: "ENTREE", quantity: 1, reference: "BL-2024-003",
-          note: "Réception Dell OptiPlex",
-          assetId: assets[3].id, toLocationId: labInfo.id, doneById: userMag.id,
-        },
-      }),
+      prisma.equipmentMovement.create({ data: { type: "ENTREE", quantity: 1, reference: "BL-2024-001", note: "Réception HP ProBook 450 G8 — bon de livraison fournisseur", assetId: assets[0].id, toLocationId: labInfo.id, doneById: userMag.id } }),
+      prisma.equipmentMovement.create({ data: { type: "ENTREE", quantity: 1, reference: "BL-2024-002", note: "Réception switch Cisco — nouvelle commande", assetId: assets[17].id, toLocationId: stockRoom.id, doneById: userMag.id } }),
+      prisma.equipmentMovement.create({ data: { type: "SORTIE", quantity: 1, reference: "BS-2024-001", note: "Envoi en réparation externe — générateur en panne", assetId: assets[11].id, fromLocationId: labElec.id, doneById: userMag.id } }),
+      prisma.equipmentMovement.create({ data: { type: "TRANSFERT", quantity: 1, reference: "BT-2024-001", note: "Transfert du stock vers Lab Informatique", assetId: assets[14].id, fromLocationId: stockRoom.id, toLocationId: labInfo.id, doneById: userMag.id } }),
+      prisma.equipmentMovement.create({ data: { type: "ENTREE", quantity: 1, reference: "BL-2024-003", note: "Réception Dell OptiPlex 3080", assetId: assets[3].id, toLocationId: labInfo.id, doneById: userMag.id } }),
     ]);
 
     await prisma.setting.create({ data: { siteName: "GestActif — Université" } });
@@ -191,5 +237,6 @@ export async function POST() {
 
 export async function GET() {
   const userCount = await prisma.user.count();
-  return NextResponse.json({ seeded: userCount > 0, count: userCount });
+  const requestCount = await prisma.equipmentRequest.count();
+  return NextResponse.json({ seeded: userCount > 0, userCount, requestCount });
 }

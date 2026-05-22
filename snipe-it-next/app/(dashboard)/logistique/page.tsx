@@ -51,12 +51,19 @@ export default async function LogistiqueDashboard() {
     }),
   ]);
 
-  const demandesRecentes = await prisma.equipmentRequest.findMany({
-    where: { status: "EN_ATTENTE" },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-    include: { requester: true, laboratoire: true },
-  });
+  const [demandesRecentes, demandesParType] = await Promise.all([
+    prisma.equipmentRequest.findMany({
+      where: { status: "EN_ATTENTE" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { requester: true, laboratoire: true },
+    }),
+    prisma.equipmentRequest.groupBy({
+      by: ["type"],
+      where: { status: "EN_ATTENTE" },
+      _count: { id: true },
+    }),
+  ]);
 
   const kpis = [
     { label: "Total Équipements", value: totalEquipements, icon: <Package size={24} />, color: "#3c8dbc", bg: "#e8f4fb" },
@@ -68,6 +75,12 @@ export default async function LogistiqueDashboard() {
   const typeLabel: Record<string, string> = { ENTREE: "Entrée", SORTIE: "Sortie", TRANSFERT: "Transfert" };
   const typeColor: Record<string, string> = { ENTREE: "#00a65a", SORTIE: "#d9534f", TRANSFERT: "#3c8dbc" };
   const urgenceColor: Record<string, string> = { HAUTE: "#d9534f", NORMALE: "#f39c12", BASSE: "#777" };
+  const demandeTypeConfig: Record<string, { label: string; color: string; bg: string }> = {
+    ACHAT: { label: "Achat", color: "#3c8dbc", bg: "#e8f4fb" },
+    REMPLACEMENT: { label: "Remplacement", color: "#e67e22", bg: "#fef0e6" },
+    REFORME: { label: "Réforme", color: "#8e44ad", bg: "#f5eef8" },
+  };
+  const demandesTypeSummary = Object.fromEntries(demandesParType.map(d => [d.type, d._count.id]));
 
   return (
     <div className="content-header" style={{ padding: 0 }}>
@@ -172,24 +185,32 @@ export default async function LogistiqueDashboard() {
                 <div style={{ padding: "20px 18px", textAlign: "center", color: "#aaa", fontSize: 13 }}>
                   Aucune demande en attente
                 </div>
-              ) : demandesRecentes.map(d => (
-                <div key={d.id} style={{ padding: "10px 18px", borderBottom: "1px solid #f8f8f8", display: "flex", alignItems: "flex-start", gap: 10 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{d.title}</div>
-                    <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>
-                      {d.laboratoire?.name} — {d.requester.firstName} {d.requester.lastName}
+              ) : demandesRecentes.map(d => {
+                const dtc = demandeTypeConfig[d.type] ?? demandeTypeConfig.ACHAT;
+                return (
+                  <div key={d.id} style={{ padding: "10px 18px", borderBottom: "1px solid #f8f8f8", display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                        <span style={{ padding: "1px 7px", borderRadius: 3, fontSize: 10, fontWeight: 700, background: dtc.bg, color: dtc.color, textTransform: "uppercase" }}>
+                          {dtc.label}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{d.title}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#888" }}>
+                        {d.laboratoire?.name} — {d.requester.firstName} {d.requester.lastName}
+                      </div>
                     </div>
+                    <span style={{
+                      padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                      background: (urgenceColor[d.urgency] ?? "#777") + "18",
+                      color: urgenceColor[d.urgency] ?? "#777",
+                      flexShrink: 0,
+                    }}>
+                      {d.urgency}
+                    </span>
                   </div>
-                  <span style={{
-                    padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 600,
-                    background: (urgenceColor[d.urgency] ?? "#777") + "18",
-                    color: urgenceColor[d.urgency] ?? "#777",
-                    flexShrink: 0,
-                  }}>
-                    {d.urgency}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

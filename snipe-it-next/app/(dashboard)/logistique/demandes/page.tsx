@@ -11,11 +11,7 @@ export default async function DemandesPage() {
 
   const demandes = await prisma.equipmentRequest.findMany({
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    include: {
-      requester: true,
-      laboratoire: true,
-      reviewer: true,
-    },
+    include: { requester: true, laboratoire: true, reviewer: true },
   });
 
   return (
@@ -24,6 +20,7 @@ export default async function DemandesPage() {
         id: d.id,
         title: d.title,
         description: d.description,
+        type: d.type,
         quantity: d.quantity,
         urgency: d.urgency,
         status: d.status,

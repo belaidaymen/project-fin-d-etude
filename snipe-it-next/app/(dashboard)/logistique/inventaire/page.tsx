@@ -42,7 +42,8 @@ export default async function InventairePage({
       <div style={{ marginBottom: 24 }}>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#333" }}>Inventaire Global des Équipements</h2>
         <p style={{ margin: "4px 0 0", color: "#777", fontSize: 14 }}>
-          {assets.length} équipement{assets.length !== 1 ? "s" : ""} trouvé{assets.length !== 1 ? "s" : ""}
+          Suivi de l'état, de la localisation et de l'affectation du matériel —{" "}
+          <b style={{ color: "#3c8dbc" }}>{assets.length}</b> équipement{assets.length !== 1 ? "s" : ""} trouvé{assets.length !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -77,7 +78,7 @@ export default async function InventairePage({
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
             <thead>
               <tr style={{ background: "#f8f9fa", borderBottom: "2px solid #e9ecef" }}>
-                {["Tag", "Nom", "Référence", "Catégorie", "Localisation", "Qté", "État", "Date achat"].map(h => (
+                {["Tag", "Désignation", "Référence", "Catégorie", "Affectation / Localisation", "Qté", "État", "Date d'achat"].map(h => (
                   <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 600, color: "#555", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>

@@ -27,14 +27,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, description, quantity, urgency, laboratoireId } = body;
+    const { title, description, type, quantity, urgency, laboratoireId } = body;
 
     if (!title) return NextResponse.json({ error: "Titre requis" }, { status: 400 });
+    if (!type) return NextResponse.json({ error: "Type de demande requis" }, { status: 400 });
 
     const demande = await prisma.equipmentRequest.create({
       data: {
         title,
         description: description || null,
+        type: type || "ACHAT",
         quantity: Number(quantity) || 1,
         urgency: urgency || "NORMALE",
         status: "EN_ATTENTE",
@@ -48,6 +50,7 @@ export async function POST(req: NextRequest) {
       id: demande.id,
       title: demande.title,
       description: demande.description,
+      type: demande.type,
       quantity: demande.quantity,
       urgency: demande.urgency,
       status: demande.status,

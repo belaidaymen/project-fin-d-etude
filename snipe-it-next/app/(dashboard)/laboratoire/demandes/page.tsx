@@ -34,6 +34,7 @@ export default async function LaboDemandesPage() {
         id: d.id,
         title: d.title,
         description: d.description,
+        type: d.type,
         quantity: d.quantity,
         urgency: d.urgency,
         status: d.status,

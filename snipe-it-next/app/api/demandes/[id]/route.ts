@@ -25,12 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     const updated = await prisma.equipmentRequest.update({
       where: { id },
-      data: {
-        status,
-        reviewerId: userId,
-        reviewNote: reviewNote || null,
-        reviewedAt: new Date(),
-      },
+      data: { status, reviewerId: userId, reviewNote: reviewNote || null, reviewedAt: new Date() },
       include: { reviewer: true, requester: true, laboratoire: true },
     });
 
@@ -38,6 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       id: updated.id,
       title: updated.title,
       description: updated.description,
+      type: updated.type,
       quantity: updated.quantity,
       urgency: updated.urgency,
       status: updated.status,
