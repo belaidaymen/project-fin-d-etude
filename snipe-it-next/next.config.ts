@@ -4,10 +4,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     "*.spock.replit.dev",
     "*.worf.replit.dev",
+    "*.janeway.replit.dev",
     "*.replit.dev",
     "*.replit.app",
-    "2c82f3bc-6f7d-450d-afb3-091ac7cbba36-00-2itvgghgbvqww.worf.replit.dev",
-    "*",
+    "39b798b2-4f45-4300-93f6-e8088767ed39-00-2dilbymrg2o8m.janeway.replit.dev",
   ],
   experimental: {
     serverActions: {
