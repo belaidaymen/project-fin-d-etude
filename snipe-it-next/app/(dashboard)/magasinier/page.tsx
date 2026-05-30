@@ -24,7 +24,7 @@ export default async function MagasinierDashboard() {
     equipParStatus,
   ] = await Promise.all([
     prisma.asset.count({ where: { deletedAt: null } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { name: "En stock" } } }),
+    prisma.asset.count({ where: { deletedAt: null, location: { name: "Magasin Central" } } }),
     prisma.equipmentMovement.count({ where: { type: "ENTREE", createdAt: { gte: thirtyDaysAgo } } }),
     prisma.equipmentMovement.count({ where: { type: "SORTIE", createdAt: { gte: thirtyDaysAgo } } }),
     prisma.equipmentMovement.count({ where: { type: "TRANSFERT", createdAt: { gte: thirtyDaysAgo } } }),

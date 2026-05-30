@@ -26,10 +26,10 @@ export default async function LogistiqueDashboard() {
   ] = await Promise.all([
     prisma.asset.count({ where: { deletedAt: null } }),
     prisma.asset.count({ where: { deletedAt: null, status: { name: "En service" } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { name: "En panne" } } }),
+    prisma.asset.count({ where: { deletedAt: null, status: { name: "Hors service" } } }),
     prisma.asset.count({ where: { deletedAt: null, status: { name: "En maintenance" } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { name: "En stock" } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { name: "Réformé" } } }),
+    prisma.asset.count({ where: { deletedAt: null, status: { name: "Disponible" } } }),
+    prisma.asset.count({ where: { deletedAt: null, status: { name: "Réservé" } } }),
     prisma.equipmentRequest.count({ where: { status: "EN_ATTENTE" } }),
     prisma.equipmentRequest.count(),
     prisma.location.count({ where: { type: "LABORATOIRE", deletedAt: null } }),
@@ -68,7 +68,7 @@ export default async function LogistiqueDashboard() {
   const kpis = [
     { label: "Total Équipements", value: totalEquipements, icon: <Package size={24} />, color: "#3c8dbc", bg: "#e8f4fb" },
     { label: "En Service", value: enService, icon: <CheckCircle size={24} />, color: "#00a65a", bg: "#e6f9f0" },
-    { label: "En Panne", value: enPanne, icon: <AlertTriangle size={24} />, color: "#d9534f", bg: "#fde8e8" },
+    { label: "Hors Service", value: enPanne, icon: <AlertTriangle size={24} />, color: "#d9534f", bg: "#fde8e8" },
     { label: "Demandes en attente", value: demandesEnAttente, icon: <ClipboardList size={24} />, color: "#f39c12", bg: "#fef6e6" },
   ];
 
@@ -146,10 +146,10 @@ export default async function LogistiqueDashboard() {
             <div style={{ padding: "16px 18px" }}>
               {[
                 { label: "En service", value: enService, color: "#00a65a" },
-                { label: "En panne", value: enPanne, color: "#d9534f" },
+                { label: "Hors service", value: enPanne, color: "#d9534f" },
                 { label: "En maintenance", value: enMaintenance, color: "#f0ad4e" },
-                { label: "En stock", value: enStock, color: "#337ab7" },
-                { label: "Réformés", value: reformes, color: "#777" },
+                { label: "Disponible", value: enStock, color: "#337ab7" },
+                { label: "Réservé", value: reformes, color: "#9b59b6" },
               ].map(s => (
                 <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
