@@ -25,7 +25,7 @@ export default async function LaboManagerDashboard() {
     prisma.location.findUnique({ where: { id: laboratoireId } }),
     prisma.asset.count({ where: { locationId: laboratoireId, deletedAt: null } }),
     prisma.asset.count({ where: { locationId: laboratoireId, deletedAt: null, status: { name: "En service" } } }),
-    prisma.asset.count({ where: { locationId: laboratoireId, deletedAt: null, status: { name: "En panne" } } }),
+    prisma.asset.count({ where: { locationId: laboratoireId, deletedAt: null, status: { name: "Hors service" } } }),
     prisma.asset.count({ where: { locationId: laboratoireId, deletedAt: null, status: { name: "En maintenance" } } }),
     prisma.equipmentRequest.count({ where: { laboratoireId, status: "EN_ATTENTE" } }),
     prisma.equipmentRequest.findMany({

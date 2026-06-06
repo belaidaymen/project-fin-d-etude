@@ -14,11 +14,11 @@ export default async function LocationReportPage() {
     include: {
       assets: {
         where: { deletedAt: null },
-        include: { status: true, model: { include: { manufacturer: true } }, assignedTo: true },
+        include: { status: true, category: true },
       },
-      _count: { select: { assets: { where: { deletedAt: null } }, users: true } },
+      _count: { select: { assets: { where: { deletedAt: null } } } },
     },
-    orderBy: [{ _count: { assets: "desc" } }, { name: "asc" }],
+    orderBy: [{ assets: { _count: "desc" } }, { name: "asc" }],
   });
 
   const totalAssets = locations.reduce((sum, l) => sum + l._count.assets, 0);
@@ -26,20 +26,19 @@ export default async function LocationReportPage() {
   return (
     <>
       <section className="content-header">
-        <h1>Location Report <small>Assets by Location</small></h1>
+        <h1>Rapport par emplacement <small>Équipements par local</small></h1>
         <ol className="breadcrumb">
-          <li><Link href="/dashboard">Home</Link></li>
-          <li><Link href="/reports">Reports</Link></li>
-          <li className="active">Location Report</li>
+          <li><Link href="/dashboard">Accueil</Link></li>
+          <li><Link href="/reports">Rapports</Link></li>
+          <li className="active">Emplacements</li>
         </ol>
       </section>
       <section className="content">
-        {/* Summary */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 16, marginBottom: 24 }}>
           {[
-            { label: "Locations", value: locations.length, color: "#3c8dbc" },
-            { label: "Total Assets", value: totalAssets, color: "#00a65a" },
-            { label: "Unassigned", value: locations.filter(l => l._count.assets === 0).length, color: "#f39c12" },
+            { label: "Emplacements", value: locations.length, color: "#3c8dbc" },
+            { label: "Total équipements", value: totalAssets, color: "#00a65a" },
+            { label: "Sans équipement", value: locations.filter(l => l._count.assets === 0).length, color: "#f39c12" },
           ].map(s => (
             <div key={s.label} className="box" style={{ borderTopColor: s.color, marginBottom: 0 }}>
               <div className="box-body" style={{ textAlign: "center", padding: "15px 10px" }}>
@@ -51,14 +50,14 @@ export default async function LocationReportPage() {
         </div>
 
         <div style={{ float: "right", marginBottom: 16 }}>
-          <Link href="/reports" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Back to Reports</Link>
+          <Link href="/reports" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Retour aux rapports</Link>
         </div>
         <div style={{ clear: "both" }} />
 
         {locations.length === 0 ? (
           <div className="box box-default">
             <div className="box-body" style={{ textAlign: "center", padding: 40, color: "#999" }}>
-              No locations found. <Link href="/locations/create" style={{ color: "#337ab7" }}>Create one.</Link>
+              Aucun emplacement trouvé. <Link href="/locations/create" style={{ color: "#337ab7" }}>En créer un.</Link>
             </div>
           </div>
         ) : locations.map(location => (
@@ -67,22 +66,17 @@ export default async function LocationReportPage() {
               <h3 className="box-title">
                 <Link href={`/locations/${location.id}`} style={{ color: "#337ab7" }}>{location.name}</Link>
               </h3>
-              <div style={{ display: "flex", gap: 12, fontSize: 13 }}>
-                <span className="label label-info">{location._count.assets} asset{location._count.assets !== 1 ? "s" : ""}</span>
-                <span className="label label-default">{location._count.users} user{location._count.users !== 1 ? "s" : ""}</span>
-                {location.city && <span style={{ color: "#777" }}>{location.city}{location.state ? `, ${location.state}` : ""}</span>}
-              </div>
+              <span className="label label-info">{location._count.assets} équipement{location._count.assets !== 1 ? "s" : ""}</span>
             </div>
             {location.assets.length > 0 && (
               <div className="box-body" style={{ padding: 0 }}>
                 <table className="table table-hover" style={{ marginBottom: 0 }}>
                   <thead>
                     <tr>
-                      <th>Asset Tag</th>
-                      <th>Name</th>
-                      <th>Model</th>
-                      <th>Status</th>
-                      <th>Assigned To</th>
+                      <th>Étiquette</th>
+                      <th>Nom</th>
+                      <th>Catégorie</th>
+                      <th>État</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -94,20 +88,13 @@ export default async function LocationReportPage() {
                           </Link>
                         </td>
                         <td>{asset.name ?? "—"}</td>
-                        <td>{asset.model?.name ?? "—"}</td>
+                        <td>{asset.category?.name ?? "—"}</td>
                         <td>
                           {asset.status ? (
                             <span className="status-badge" style={{ background: asset.status.color || "#777" }}>
                               {asset.status.name}
                             </span>
                           ) : "—"}
-                        </td>
-                        <td>
-                          {asset.assignedTo ? (
-                            <Link href={`/users/${asset.assignedTo.id}`} style={{ color: "#337ab7" }}>
-                              {asset.assignedTo.firstName} {asset.assignedTo.lastName}
-                            </Link>
-                          ) : <span className="text-muted">—</span>}
                         </td>
                       </tr>
                     ))}

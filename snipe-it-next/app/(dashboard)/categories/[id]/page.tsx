@@ -12,7 +12,7 @@ export default async function CategoryDetailPage({ params }: { params: { id: str
   const cat = await prisma.category.findFirst({
     where: { id: params.id, deletedAt: null },
     include: {
-      models: { where: { deletedAt: null }, take: 25, orderBy: { name: "asc" } },
+      assets: { where: { deletedAt: null }, take: 25, include: { status: true } },
     },
   });
   if (!cat) notFound();
@@ -22,40 +22,41 @@ export default async function CategoryDetailPage({ params }: { params: { id: str
       <section className="content-header">
         <h1>{cat.name}</h1>
         <ol className="breadcrumb">
-          <li><Link href="/dashboard">Home</Link></li>
-          <li><Link href="/categories">Categories</Link></li>
+          <li><Link href="/dashboard">Accueil</Link></li>
+          <li><Link href="/categories">Catégories</Link></li>
           <li className="active">{cat.name}</li>
         </ol>
       </section>
       <section className="content">
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          <Link href="/categories" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Back</Link>
-          <Link href={`/categories/${cat.id}/edit`} className="btn btn-warning btn-sm"><Edit size={14} /> Edit</Link>
+          <Link href="/categories" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Retour</Link>
+          <Link href={`/categories/${cat.id}/edit`} className="btn btn-warning btn-sm"><Edit size={14} /> Modifier</Link>
         </div>
         <div className="box box-primary">
-          <div className="box-header with-border"><h3 className="box-title">Category Details</h3></div>
+          <div className="box-header with-border"><h3 className="box-title">Détails de la catégorie</h3></div>
           <div className="box-body" style={{ padding: 0 }}>
             <table className="table">
               <tbody>
-                <tr><td style={{ width: "35%", fontWeight: 600, color: "#777" }}>Name</td><td><strong>{cat.name}</strong></td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Type</td><td><span className="label label-default" style={{ textTransform: "capitalize" }}>{cat.categoryType}</span></td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Models</td><td>{cat.models.length}</td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Require Acceptance</td><td>{cat.requireAcceptance ? "Yes" : "No"}</td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Checkin Email</td><td>{cat.checkinEmail ? "Yes" : "No"}</td></tr>
+                <tr><td style={{ width: "35%", fontWeight: 600, color: "#777" }}>Nom</td><td><strong>{cat.name}</strong></td></tr>
+                <tr><td style={{ fontWeight: 600, color: "#777" }}>Équipements</td><td>{cat.assets.length}</td></tr>
                 {cat.notes && <tr><td style={{ fontWeight: 600, color: "#777" }}>Notes</td><td>{cat.notes}</td></tr>}
               </tbody>
             </table>
           </div>
         </div>
-        {cat.models.length > 0 && (
+        {cat.assets.length > 0 && (
           <div className="box box-default">
-            <div className="box-header with-border"><h3 className="box-title">Models in this Category</h3></div>
+            <div className="box-header with-border"><h3 className="box-title">Équipements dans cette catégorie</h3></div>
             <div className="box-body" style={{ padding: 0 }}>
               <table className="table table-hover">
-                <thead><tr><th>Name</th><th>Model #</th></tr></thead>
+                <thead><tr><th>Étiquette</th><th>Nom</th><th>État</th></tr></thead>
                 <tbody>
-                  {cat.models.map(m => (
-                    <tr key={m.id}><td><Link href={`/models/${m.id}`} style={{ color: "#337ab7" }}>{m.name}</Link></td><td style={{ fontSize: 12 }}>{m.modelNumber ?? "—"}</td></tr>
+                  {cat.assets.map(a => (
+                    <tr key={a.id}>
+                      <td><Link href={`/hardware/${a.id}`} style={{ color: "#337ab7" }}>{a.assetTag}</Link></td>
+                      <td>{a.name}</td>
+                      <td>{a.status ? <span style={{ background: a.status.color || "#888", color: "#fff", padding: "2px 8px", borderRadius: 3, fontSize: 11 }}>{a.status.name}</span> : "—"}</td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

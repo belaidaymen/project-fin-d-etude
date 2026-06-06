@@ -16,21 +16,24 @@ export default async function StatusLabelsPage({ searchParams }: { searchParams:
 
   const where: any = { deletedAt: null, ...(search && { name: { contains: search, mode: "insensitive" } }) };
   const [items, total] = await Promise.all([
-    prisma.statuslabel.findMany({ where, include: { _count: { select: { assets: true } } }, orderBy: { name: "asc" }, skip: (page - 1) * perPage, take: perPage }),
+    prisma.statuslabel.findMany({
+      where,
+      include: { _count: { select: { assets: true } } },
+      orderBy: { name: "asc" },
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
     prisma.statuslabel.count({ where }),
   ]);
 
-  const columns = ["Name", "Type", "Assets", "Deployable", "Pending", "Archived", "Show in Nav", "Actions"];
+  const columns = ["État", "Couleur", "Équipements", "Notes", "Actions"];
   const rows = items.map(item => ({
     id: item.id,
     cells: [
       { type: "link" as const, value: item.name, href: `/statuslabels/${item.id}` },
-      { type: "badge" as const, value: item.statusType, color: item.statusType === "deployable" ? "success" : item.statusType === "pending" ? "warning" : item.statusType === "archived" ? "default" : "danger" as any },
+      { type: "text" as const, value: item.color ? item.color : "—" },
       { type: "badge" as const, value: item._count.assets.toString(), color: "info" as const },
-      { type: "text" as const, value: item.deployable ? "✓" : "—" },
-      { type: "text" as const, value: item.pending ? "✓" : "—" },
-      { type: "text" as const, value: item.archived ? "✓" : "—" },
-      { type: "text" as const, value: item.showInNav ? "✓" : "—" },
+      { type: "text" as const, value: item.notes ?? "—" },
     ],
     editHref: `/statuslabels/${item.id}/edit`,
     deleteUrl: `/api/statuslabels/${item.id}`,
@@ -40,15 +43,15 @@ export default async function StatusLabelsPage({ searchParams }: { searchParams:
   return (
     <>
       <section className="content-header">
-        <h1>Status Labels</h1>
-        <ol className="breadcrumb"><li><a href="#">Home</a></li><li className="active">Status Labels</li></ol>
+        <h1>États</h1>
+        <ol className="breadcrumb"><li><a href="#">Accueil</a></li><li className="active">États</li></ol>
       </section>
       <section className="content">
         <div className="box box-default">
           <div className="box-header with-border">
-            <h3 className="box-title">Status Label List</h3>
+            <h3 className="box-title">Liste des états</h3>
             <div style={{ float: "right" }}>
-              <Link href="/statuslabels/create" className="btn btn-primary btn-sm"><Plus size={14} /> Create</Link>
+              <Link href="/statuslabels/create" className="btn btn-primary btn-sm"><Plus size={14} /> Créer</Link>
             </div>
           </div>
           <div className="box-body" style={{ padding: 0 }}>

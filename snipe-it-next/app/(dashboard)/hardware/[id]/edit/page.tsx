@@ -9,14 +9,11 @@ export default async function EditAssetPage({ params }: { params: { id: string }
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  const [asset, models, statuses, suppliers, locations, companies, users] = await Promise.all([
+  const [asset, categories, statuses, locations] = await Promise.all([
     prisma.asset.findFirst({ where: { id: params.id, deletedAt: null } }),
-    prisma.assetModel.findMany({ where: { deletedAt: null }, include: { manufacturer: true }, orderBy: { name: "asc" } }),
+    prisma.category.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
     prisma.statuslabel.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.supplier.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
     prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.company.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.user.findMany({ where: { deletedAt: null, activated: true }, orderBy: [{ firstName: "asc" }] }),
   ]);
 
   if (!asset) notFound();
@@ -24,27 +21,33 @@ export default async function EditAssetPage({ params }: { params: { id: string }
   return (
     <>
       <section className="content-header">
-        <h1>Edit Asset <small>{asset.assetTag}</small></h1>
+        <h1>Modifier l'équipement <small>{asset.assetTag}</small></h1>
         <ol className="breadcrumb">
-          <li><Link href="/dashboard">Home</Link></li>
-          <li><Link href="/hardware">Assets</Link></li>
+          <li><Link href="/dashboard">Accueil</Link></li>
+          <li><Link href="/hardware">Équipements</Link></li>
           <li><Link href={`/hardware/${asset.id}`}>{asset.assetTag}</Link></li>
-          <li className="active">Edit</li>
+          <li className="active">Modifier</li>
         </ol>
       </section>
       <section className="content">
         <AssetForm
           asset={{
-            ...asset,
+            id: asset.id,
+            assetTag: asset.assetTag,
+            name: asset.name,
+            serial: asset.serial,
+            reference: asset.reference,
+            categoryId: asset.categoryId,
+            statusId: asset.statusId,
+            locationId: asset.locationId,
             purchaseDate: asset.purchaseDate?.toISOString() ?? null,
             purchaseCost: asset.purchaseCost?.toString() ?? null,
+            notes: asset.notes,
+            quantity: asset.quantity,
           }}
-          models={models.map(m => ({ id: m.id, name: m.name, manufacturer: m.manufacturer?.name ?? null }))}
-          statuses={statuses.map(s => ({ id: s.id, name: s.name, type: s.statusType }))}
-          suppliers={suppliers.map(s => ({ id: s.id, name: s.name }))}
+          categories={categories.map(c => ({ id: c.id, name: c.name }))}
+          statuses={statuses.map(s => ({ id: s.id, name: s.name, color: s.color }))}
           locations={locations.map(l => ({ id: l.id, name: l.name }))}
-          companies={companies.map(c => ({ id: c.id, name: c.name }))}
-          users={users.map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}` }))}
         />
       </section>
     </>

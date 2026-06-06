@@ -8,10 +8,9 @@ import Link from "next/link";
 export default async function EditLocationPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const [item, parents, companies] = await Promise.all([
+  const [item, parents] = await Promise.all([
     prisma.location.findFirst({ where: { id: params.id, deletedAt: null } }),
     prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.company.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
   ]);
   if (!item) notFound();
   return (
@@ -32,8 +31,7 @@ export default async function EditLocationPage({ params }: { params: { id: strin
             { name: "country", label: "Country", type: "text" },
             { name: "zip", label: "Zip/Postal Code", type: "text" },
             { name: "phone", label: "Phone", type: "text" },
-            { name: "parentId", label: "Parent Location", type: "select", options: parents.filter(p => p.id !== params.id).map(p => ({ value: p.id, label: p.name })) },
-            { name: "companyId", label: "Company", type: "select", options: companies.map(c => ({ value: c.id, label: c.name })) },
+            { name: "parentId", label: "Emplacement parent", type: "select", options: parents.filter(p => p.id !== params.id).map(p => ({ value: p.id, label: p.name })) },
           ]}
         />
       </section>

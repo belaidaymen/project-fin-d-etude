@@ -8,23 +8,19 @@ export default async function CreateStatusLabelPage() {
   if (!session) redirect("/login");
   return (
     <>
-      <section className="content-header"><h1>Create Status Label</h1><ol className="breadcrumb"><li><a href="/statuslabels">Status Labels</a></li><li className="active">Create</li></ol></section>
+      <section className="content-header">
+        <h1>Créer un état</h1>
+        <ol className="breadcrumb"><li><a href="/statuslabels">États</a></li><li className="active">Créer</li></ol>
+      </section>
       <section className="content">
         <EntityForm
           entityType="statuslabel"
           apiUrl="/api/statuslabels"
           backUrl="/statuslabels"
           fields={[
-            { name: "name", label: "Name", type: "text", required: true },
-            { name: "statusType", label: "Status Type", type: "select", required: true, options: [
-              { value: "deployable", label: "Deployable" },
-              { value: "pending", label: "Pending" },
-              { value: "archived", label: "Archived" },
-              { value: "undeployable", label: "Undeployable" },
-            ]},
-            { name: "color", label: "Color", type: "color" },
+            { name: "name", label: "Nom", type: "text", required: true },
+            { name: "color", label: "Couleur", type: "color" },
             { name: "notes", label: "Notes", type: "textarea" },
-            { name: "showInNav", label: "Show in Sidebar", type: "checkbox", defaultValue: true },
           ]}
         />
       </section>

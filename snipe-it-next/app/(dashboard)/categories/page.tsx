@@ -16,21 +16,23 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
 
   const where: any = { deletedAt: null, ...(search && { name: { contains: search, mode: "insensitive" } }) };
   const [items, total] = await Promise.all([
-    prisma.category.findMany({ where, include: { _count: { select: { assetModels: true, accessories: true, licenses: true } } }, orderBy: { name: "asc" }, skip: (page - 1) * perPage, take: perPage }),
+    prisma.category.findMany({
+      where,
+      include: { _count: { select: { assets: true } } },
+      orderBy: { name: "asc" },
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
     prisma.category.count({ where }),
   ]);
 
-  const columns = ["Name", "Type", "Models", "Accessories", "Licenses", "EULA", "Accept", "Actions"];
+  const columns = ["Nom", "Équipements", "Notes", "Actions"];
   const rows = items.map(item => ({
     id: item.id,
     cells: [
       { type: "link" as const, value: item.name, href: `/categories/${item.id}` },
-      { type: "badge" as const, value: item.categoryType, color: "info" as const },
-      { type: "text" as const, value: item._count.assetModels.toString() },
-      { type: "text" as const, value: item._count.accessories.toString() },
-      { type: "text" as const, value: item._count.licenses.toString() },
-      { type: "text" as const, value: item.eulaText ? "Yes" : "No" },
-      { type: "text" as const, value: item.requireAcceptance ? "Yes" : "No" },
+      { type: "badge" as const, value: item._count.assets.toString(), color: "info" as const },
+      { type: "text" as const, value: item.notes ?? "—" },
     ],
     editHref: `/categories/${item.id}/edit`,
     deleteUrl: `/api/categories/${item.id}`,
@@ -40,15 +42,15 @@ export default async function CategoriesPage({ searchParams }: { searchParams: {
   return (
     <>
       <section className="content-header">
-        <h1>Categories</h1>
-        <ol className="breadcrumb"><li><a href="#">Home</a></li><li className="active">Categories</li></ol>
+        <h1>Catégories</h1>
+        <ol className="breadcrumb"><li><a href="#">Accueil</a></li><li className="active">Catégories</li></ol>
       </section>
       <section className="content">
         <div className="box box-default">
           <div className="box-header with-border">
-            <h3 className="box-title">Category List</h3>
+            <h3 className="box-title">Liste des catégories</h3>
             <div style={{ float: "right" }}>
-              <Link href="/categories/create" className="btn btn-primary btn-sm"><Plus size={14} /> Create</Link>
+              <Link href="/categories/create" className="btn btn-primary btn-sm"><Plus size={14} /> Créer</Link>
             </div>
           </div>
           <div className="box-body" style={{ padding: 0 }}>

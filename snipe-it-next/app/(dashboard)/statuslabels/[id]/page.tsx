@@ -11,9 +11,7 @@ export default async function StatusLabelDetailPage({ params }: { params: { id: 
 
   const label = await prisma.statuslabel.findFirst({
     where: { id: params.id, deletedAt: null },
-    include: {
-      assets: { where: { deletedAt: null }, take: 20 },
-    },
+    include: { assets: { where: { deletedAt: null }, take: 20 } },
   });
   if (!label) notFound();
 
@@ -22,29 +20,38 @@ export default async function StatusLabelDetailPage({ params }: { params: { id: 
       <section className="content-header">
         <h1>{label.name}</h1>
         <ol className="breadcrumb">
-          <li><Link href="/dashboard">Home</Link></li>
-          <li><Link href="/statuslabels">Status Labels</Link></li>
+          <li><Link href="/dashboard">Accueil</Link></li>
+          <li><Link href="/statuslabels">États</Link></li>
           <li className="active">{label.name}</li>
         </ol>
       </section>
       <section className="content">
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          <Link href="/statuslabels" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Back</Link>
-          <Link href={`/statuslabels/${label.id}/edit`} className="btn btn-warning btn-sm"><Edit size={14} /> Edit</Link>
+          <Link href="/statuslabels" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Retour</Link>
+          <Link href={`/statuslabels/${label.id}/edit`} className="btn btn-warning btn-sm"><Edit size={14} /> Modifier</Link>
         </div>
         <div className="box box-primary">
           <div className="box-header with-border">
-            <h3 className="box-title">Status Label Details</h3>
-            {label.color && <span style={{ float: "right", background: label.color, color: "#fff", padding: "2px 12px", borderRadius: 3, fontSize: 13 }}>{label.name}</span>}
+            <h3 className="box-title">Détails de l'état</h3>
+            {label.color && (
+              <span style={{ float: "right", background: label.color, color: "#fff", padding: "2px 12px", borderRadius: 3, fontSize: 13 }}>
+                {label.name}
+              </span>
+            )}
           </div>
           <div className="box-body" style={{ padding: 0 }}>
             <table className="table">
               <tbody>
-                <tr><td style={{ width: "35%", fontWeight: 600, color: "#777" }}>Name</td><td><strong>{label.name}</strong></td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Type</td><td><span className="label label-default" style={{ textTransform: "capitalize" }}>{label.statusType}</span></td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Color</td><td>{label.color ? <><span style={{ display: "inline-block", width: 18, height: 18, background: label.color, borderRadius: 3, marginRight: 6, verticalAlign: "middle" }} />{label.color}</> : "—"}</td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Show in Nav</td><td>{label.showInNav ? "Yes" : "No"}</td></tr>
-                <tr><td style={{ fontWeight: 600, color: "#777" }}>Assets</td><td>{label.assets.length}</td></tr>
+                <tr><td style={{ width: "35%", fontWeight: 600, color: "#777" }}>Nom</td><td><strong>{label.name}</strong></td></tr>
+                <tr>
+                  <td style={{ fontWeight: 600, color: "#777" }}>Couleur</td>
+                  <td>
+                    {label.color
+                      ? <><span style={{ display: "inline-block", width: 18, height: 18, background: label.color, borderRadius: 3, marginRight: 6, verticalAlign: "middle" }} />{label.color}</>
+                      : "—"}
+                  </td>
+                </tr>
+                <tr><td style={{ fontWeight: 600, color: "#777" }}>Équipements</td><td>{label.assets.length}</td></tr>
                 {label.notes && <tr><td style={{ fontWeight: 600, color: "#777" }}>Notes</td><td>{label.notes}</td></tr>}
               </tbody>
             </table>

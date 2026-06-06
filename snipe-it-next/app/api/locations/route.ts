@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body.name) return NextResponse.json({ error: "Name required" }, { status: 400 });
-    const item = await prisma.location.create({ data: { name: body.name, address: body.address ?? null, address2: body.address2 ?? null, city: body.city ?? null, state: body.state ?? null, country: body.country ?? null, zip: body.zip ?? null, phone: body.phone ?? null, parentId: body.parentId ?? null, companyId: body.companyId ?? null } });
+    const item = await prisma.location.create({ data: { name: body.name, address: body.address ?? null, address2: body.address2 ?? null, city: body.city ?? null, state: body.state ?? null, country: body.country ?? null, zip: body.zip ?? null, phone: body.phone ?? null, parentId: body.parentId ?? null } });
     return NextResponse.json(item, { status: 201 });
   } catch (err: any) { return NextResponse.json({ error: err.message }, { status: 500 }); }
 }

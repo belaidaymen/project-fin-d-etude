@@ -30,7 +30,7 @@ export default async function LaboEquipementsPage() {
   ]);
 
   const enService = assets.filter(a => a.status?.name === "En service").length;
-  const enPanne = assets.filter(a => a.status?.name === "En panne").length;
+  const enPanne = assets.filter(a => a.status?.name === "Hors service").length;
   const enMaintenance = assets.filter(a => a.status?.name === "En maintenance").length;
 
   return (
@@ -48,7 +48,7 @@ export default async function LaboEquipementsPage() {
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         {[
           { label: "En service", count: enService, color: "#00a65a" },
-          { label: "En panne", count: enPanne, color: "#d9534f" },
+          { label: "Hors service", count: enPanne, color: "#d9534f" },
           { label: "En maintenance", count: enMaintenance, color: "#f0ad4e" },
         ].map(s => (
           <div key={s.label} style={{

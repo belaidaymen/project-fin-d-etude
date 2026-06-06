@@ -12,19 +12,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { statusId, locationId, note } = body;
 
     const asset = await prisma.asset.findFirst({ where: { id: params.id, deletedAt: null } });
-    if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
-
-    const adminId = (session.user as any).id;
-    const prevUserId = asset.assignedToId;
+    if (!asset) return NextResponse.json({ error: "Équipement introuvable" }, { status: 404 });
 
     const updated = await prisma.$transaction(async tx => {
       const updatedAsset = await tx.asset.update({
         where: { id: params.id },
         data: {
-          assignedToId: null,
-          assignedType: null,
-          lastCheckin: new Date(),
-          expectedCheckin: null,
           statusId: statusId || asset.statusId,
           locationId: locationId || asset.locationId,
         },
@@ -34,8 +27,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         data: {
           actionType: "checkin",
           assetId: params.id,
-          userId: prevUserId,
-          adminId,
           note: note || null,
         },
       });

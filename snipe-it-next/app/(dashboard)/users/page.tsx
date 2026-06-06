@@ -29,12 +29,7 @@ export default async function UsersPage({ searchParams }: { searchParams: { [key
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
-      include: {
-        company: true,
-        location: true,
-        department: true,
-        _count: { select: { assets: true } },
-      },
+      include: { laboratoire: true },
       orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
       skip: (page - 1) * perPage,
       take: perPage,
@@ -47,33 +42,30 @@ export default async function UsersPage({ searchParams }: { searchParams: { [key
     name: `${u.firstName} ${u.lastName}`,
     username: u.username,
     email: u.email,
+    role: u.role,
     jobTitle: u.jobTitle,
     phone: u.phone,
-    company: u.company?.name ?? null,
-    location: u.location?.name ?? null,
-    department: u.department?.name ?? null,
+    laboratoire: u.laboratoire?.name ?? null,
     activated: u.activated,
-    isSuperAdmin: u.isSuperAdmin,
-    assetCount: u._count.assets,
     createdAt: u.createdAt.toISOString(),
   }));
 
   return (
     <>
       <section className="content-header">
-        <h1>Users <small>People Management</small></h1>
+        <h1>Utilisateurs <small>Gestion des comptes</small></h1>
         <ol className="breadcrumb">
-          <li><a href="#">Home</a></li>
-          <li className="active">Users</li>
+          <li><a href="#">Accueil</a></li>
+          <li className="active">Utilisateurs</li>
         </ol>
       </section>
       <section className="content">
         <div className="box box-default">
           <div className="box-header with-border">
-            <h3 className="box-title">User List</h3>
+            <h3 className="box-title">Liste des utilisateurs</h3>
             <div style={{ float: "right", display: "flex", gap: 6 }}>
-              <Link href="/users/create" className="btn btn-primary btn-sm"><Plus size={14} /> Create</Link>
-              <button className="btn btn-default btn-sm"><Download size={14} /> Export</button>
+              <Link href="/users/create" className="btn btn-primary btn-sm"><Plus size={14} /> Créer</Link>
+              <button className="btn btn-default btn-sm"><Download size={14} /> Exporter</button>
             </div>
           </div>
           <div className="box-body" style={{ padding: 0 }}>

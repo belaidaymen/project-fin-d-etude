@@ -9,10 +9,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const asset = await prisma.asset.findFirst({
     where: { id: params.id, deletedAt: null },
-    include: { model: { include: { manufacturer: true } }, status: true, assignedTo: true, location: true, supplier: true },
+    include: { category: true, status: true, location: true },
   });
 
-  if (!asset) return NextResponse.json({ error: "Asset not found" }, { status: 404 });
+  if (!asset) return NextResponse.json({ error: "Équipement introuvable" }, { status: 404 });
   return NextResponse.json(asset);
 }
 
@@ -22,8 +22,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   try {
     const body = await req.json();
-    const { assetTag, name, serial, modelId, statusId, supplierId, locationId, companyId,
-      purchaseDate, purchaseCost, orderNumber, warrantyMonths, notes, requestable } = body;
+    const { assetTag, name, serial, reference, categoryId, statusId, locationId,
+      purchaseDate, purchaseCost, notes, quantity } = body;
 
     const asset = await prisma.asset.update({
       where: { id: params.id },
@@ -31,17 +31,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         assetTag,
         name: name || null,
         serial: serial || null,
-        modelId: modelId || null,
+        reference: reference || null,
+        categoryId: categoryId || null,
         statusId: statusId || null,
-        supplierId: supplierId || null,
         locationId: locationId || null,
-        companyId: companyId || null,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
         purchaseCost: purchaseCost ? parseFloat(purchaseCost) : null,
-        orderNumber: orderNumber || null,
-        warrantyMonths: warrantyMonths ? parseInt(warrantyMonths) : null,
         notes: notes || null,
-        requestable: requestable ?? false,
+        quantity: quantity ? parseInt(quantity) : 1,
       },
     });
 

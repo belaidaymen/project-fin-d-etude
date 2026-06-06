@@ -12,15 +12,22 @@ export default async function EditStatusLabelPage({ params }: { params: { id: st
   if (!item) notFound();
   return (
     <>
-      <section className="content-header"><h1>Edit Status Label</h1><ol className="breadcrumb"><li><Link href="/statuslabels">Status Labels</Link></li><li className="active">Edit</li></ol></section>
+      <section className="content-header">
+        <h1>Modifier l'état</h1>
+        <ol className="breadcrumb"><li><Link href="/statuslabels">États</Link></li><li className="active">Modifier</li></ol>
+      </section>
       <section className="content">
-        <EntityForm entityType="statuslabel" apiUrl="/api/statuslabels" backUrl="/statuslabels" item={{ ...item }} fields={[
-          { name: "name", label: "Name", type: "text", required: true },
-          { name: "statusType", label: "Status Type", type: "select", required: true, options: [{ value: "deployable", label: "Deployable" }, { value: "pending", label: "Pending" }, { value: "archived", label: "Archived" }, { value: "undeployable", label: "Undeployable" }] },
-          { name: "color", label: "Color", type: "color" },
-          { name: "notes", label: "Notes", type: "textarea" },
-          { name: "showInNav", label: "Show in Sidebar", type: "checkbox" },
-        ]} />
+        <EntityForm
+          entityType="statuslabel"
+          apiUrl="/api/statuslabels"
+          backUrl="/statuslabels"
+          item={{ ...item }}
+          fields={[
+            { name: "name", label: "Nom", type: "text", required: true },
+            { name: "color", label: "Couleur", type: "color" },
+            { name: "notes", label: "Notes", type: "textarea" },
+          ]}
+        />
       </section>
     </>
   );

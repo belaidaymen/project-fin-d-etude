@@ -8,28 +8,20 @@ export default async function CreateUserPage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  const [companies, locations, departments, managers] = await Promise.all([
-    prisma.company.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.department.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.user.findMany({ where: { deletedAt: null, activated: true }, orderBy: [{ firstName: "asc" }] }),
-  ]);
+  const locations = await prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } });
 
   return (
     <>
       <section className="content-header">
-        <h1>Create User</h1>
+        <h1>Créer un utilisateur</h1>
         <ol className="breadcrumb">
-          <li><a href="/users">Users</a></li>
-          <li className="active">Create</li>
+          <li><a href="/users">Utilisateurs</a></li>
+          <li className="active">Créer</li>
         </ol>
       </section>
       <section className="content">
         <UserForm
-          companies={companies.map(c => ({ id: c.id, name: c.name }))}
           locations={locations.map(l => ({ id: l.id, name: l.name }))}
-          departments={departments.map(d => ({ id: d.id, name: d.name }))}
-          managers={managers.map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}` }))}
         />
       </section>
     </>

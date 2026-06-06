@@ -15,8 +15,12 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await req.json();
-    if (!body.name || !body.categoryType) return NextResponse.json({ error: "Name and type required" }, { status: 400 });
-    const item = await prisma.category.create({ data: { name: body.name, categoryType: body.categoryType, eulaText: body.eulaText ?? null, useDefaultEula: body.useDefaultEula ?? false, requireAcceptance: body.requireAcceptance ?? false, checkinEmail: body.checkinEmail ?? false, notes: body.notes ?? null } });
+    if (!body.name) return NextResponse.json({ error: "Le nom est requis" }, { status: 400 });
+    const item = await prisma.category.create({
+      data: { name: body.name, notes: body.notes ?? null },
+    });
     return NextResponse.json(item, { status: 201 });
-  } catch (err: any) { return NextResponse.json({ error: err.message }, { status: 500 }); }
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }

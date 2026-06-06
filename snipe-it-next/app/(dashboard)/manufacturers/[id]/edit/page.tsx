@@ -1,28 +1,12 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/app/lib/prisma";
-import EntityForm from "@/components/forms/EntityForm";
 import Link from "next/link";
 
-export default async function EditManufacturerPage({ params }: { params: { id: string } }) {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect("/login");
-  const item = await prisma.manufacturer.findFirst({ where: { id: params.id, deletedAt: null } });
-  if (!item) notFound();
+export default function Page() {
   return (
-    <>
-      <section className="content-header"><h1>Edit Manufacturer</h1><ol className="breadcrumb"><li><Link href="/manufacturers">Manufacturers</Link></li><li className="active">Edit</li></ol></section>
-      <section className="content">
-        <EntityForm entityType="manufacturer" apiUrl="/api/manufacturers" backUrl="/manufacturers" item={{ ...item }} fields={[
-          { name: "name", label: "Name", type: "text", required: true },
-          { name: "url", label: "URL", type: "text" },
-          { name: "supportUrl", label: "Support URL", type: "text" },
-          { name: "supportPhone", label: "Support Phone", type: "text" },
-          { name: "supportEmail", label: "Support Email", type: "text" },
-          { name: "notes", label: "Notes", type: "textarea" },
-        ]} />
-      </section>
-    </>
+    <div style={{ padding: 40, textAlign: "center" }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🔧</div>
+      <h2 style={{ color: "#555", marginBottom: 8 }}>Fonctionnalité en cours de développement</h2>
+      <p style={{ fontSize: 14, color: "#999", marginBottom: 24 }}>Cette section sera disponible dans une prochaine version de GestActif.</p>
+      <Link href="/dashboard" className="btn btn-default">Retour au tableau de bord</Link>
+    </div>
   );
 }

@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
         { assetTag: { contains: search, mode: "insensitive" } },
         { name: { contains: search, mode: "insensitive" } },
         { serial: { contains: search, mode: "insensitive" } },
+        { reference: { contains: search, mode: "insensitive" } },
       ],
     }),
   };
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
   const [assets, total] = await Promise.all([
     prisma.asset.findMany({
       where,
-      include: { model: { include: { manufacturer: true } }, status: true, assignedTo: true, location: true },
+      include: { category: true, status: true, location: true },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * perPage,
       take: perPage,
@@ -43,30 +44,27 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { assetTag, name, serial, modelId, statusId, supplierId, locationId, companyId,
-      purchaseDate, purchaseCost, orderNumber, warrantyMonths, notes, requestable } = body;
+    const { assetTag, name, serial, reference, categoryId, statusId, locationId,
+      purchaseDate, purchaseCost, notes, quantity } = body;
 
-    if (!assetTag) return NextResponse.json({ error: "Asset tag is required" }, { status: 400 });
+    if (!assetTag) return NextResponse.json({ error: "L'étiquette d'équipement est requise" }, { status: 400 });
 
     const existing = await prisma.asset.findFirst({ where: { assetTag } });
-    if (existing) return NextResponse.json({ error: "Asset tag already exists" }, { status: 400 });
+    if (existing) return NextResponse.json({ error: "Cette étiquette existe déjà" }, { status: 400 });
 
     const asset = await prisma.asset.create({
       data: {
         assetTag,
         name: name || null,
         serial: serial || null,
-        modelId: modelId || null,
+        reference: reference || null,
+        categoryId: categoryId || null,
         statusId: statusId || null,
-        supplierId: supplierId || null,
         locationId: locationId || null,
-        companyId: companyId || null,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
         purchaseCost: purchaseCost ? parseFloat(purchaseCost) : null,
-        orderNumber: orderNumber || null,
-        warrantyMonths: warrantyMonths ? parseInt(warrantyMonths) : null,
         notes: notes || null,
-        requestable: requestable ?? false,
+        quantity: quantity ? parseInt(quantity) : 1,
       },
     });
 

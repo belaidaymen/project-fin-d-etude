@@ -1,37 +1,12 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
-import { redirect } from "next/navigation";
-import { prisma } from "@/app/lib/prisma";
-import InventoryForm from "@/components/forms/InventoryForm";
+import Link from "next/link";
 
-export default async function CreateComponentPage() {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect("/login");
-
-  const [manufacturers, categories, suppliers, locations, companies] = await Promise.all([
-    prisma.manufacturer.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.category.findMany({ where: { deletedAt: null, categoryType: "component" }, orderBy: { name: "asc" } }),
-    prisma.supplier.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.company.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-  ]);
-
+export default function Page() {
   return (
-    <>
-      <section className="content-header">
-        <h1>Create Component</h1>
-        <ol className="breadcrumb"><li><a href="/components">Components</a></li><li className="active">Create</li></ol>
-      </section>
-      <section className="content">
-        <InventoryForm
-          entityType="component"
-          manufacturers={manufacturers.map(m => ({ id: m.id, name: m.name }))}
-          categories={categories.map(c => ({ id: c.id, name: c.name }))}
-          suppliers={suppliers.map(s => ({ id: s.id, name: s.name }))}
-          locations={locations.map(l => ({ id: l.id, name: l.name }))}
-          companies={companies.map(c => ({ id: c.id, name: c.name }))}
-        />
-      </section>
-    </>
+    <div style={{ padding: 40, textAlign: "center" }}>
+      <div style={{ fontSize: 48, marginBottom: 16 }}>🔧</div>
+      <h2 style={{ color: "#555", marginBottom: 8 }}>Fonctionnalité en cours de développement</h2>
+      <p style={{ fontSize: 14, color: "#999", marginBottom: 24 }}>Cette section sera disponible dans une prochaine version de GestActif.</p>
+      <Link href="/dashboard" className="btn btn-default">Retour au tableau de bord</Link>
+    </div>
   );
 }

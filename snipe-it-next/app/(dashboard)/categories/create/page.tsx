@@ -8,25 +8,18 @@ export default async function CreateCategoryPage() {
   if (!session) redirect("/login");
   return (
     <>
-      <section className="content-header"><h1>Create Category</h1><ol className="breadcrumb"><li><a href="/categories">Categories</a></li><li className="active">Create</li></ol></section>
+      <section className="content-header">
+        <h1>Créer une catégorie</h1>
+        <ol className="breadcrumb"><li><a href="/categories">Catégories</a></li><li className="active">Créer</li></ol>
+      </section>
       <section className="content">
         <EntityForm
           entityType="category"
           apiUrl="/api/categories"
           backUrl="/categories"
           fields={[
-            { name: "name", label: "Name", type: "text", required: true },
-            { name: "categoryType", label: "Category Type", type: "select", required: true, options: [
-              { value: "asset", label: "Asset" },
-              { value: "accessory", label: "Accessory" },
-              { value: "consumable", label: "Consumable" },
-              { value: "component", label: "Component" },
-              { value: "license", label: "License" },
-            ]},
-            { name: "eulaText", label: "EULA Text", type: "textarea" },
+            { name: "name", label: "Nom", type: "text", required: true },
             { name: "notes", label: "Notes", type: "textarea" },
-            { name: "requireAcceptance", label: "Require Acceptance", type: "checkbox" },
-            { name: "checkinEmail", label: "Send Email on Check-In", type: "checkbox" },
           ]}
         />
       </section>

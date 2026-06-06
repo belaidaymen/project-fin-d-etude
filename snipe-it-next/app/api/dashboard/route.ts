@@ -8,28 +8,28 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [
-    totalAssets, deployedAssets, pendingAssets, archivedAssets,
-    totalLicenses, usedLicenseSeats, totalLicenseSeats,
-    totalAccessories, totalConsumables, totalComponents, totalUsers,
+    totalAssets, totalUsers, totalLocations, totalCategories,
+    totalMovements, totalDemandes, pendingDemandes,
+    assetsByStatus,
   ] = await Promise.all([
     prisma.asset.count({ where: { deletedAt: null } }),
-    prisma.asset.count({ where: { deletedAt: null, assignedToId: { not: null } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { statusType: "pending" } } }),
-    prisma.asset.count({ where: { deletedAt: null, status: { statusType: "archived" } } }),
-    prisma.license.count({ where: { deletedAt: null } }),
-    prisma.licenseSeat.count({ where: { assigned: true } }),
-    prisma.licenseSeat.count(),
-    prisma.accessory.count({ where: { deletedAt: null } }),
-    prisma.consumable.count({ where: { deletedAt: null } }),
-    prisma.component.count({ where: { deletedAt: null } }),
     prisma.user.count({ where: { deletedAt: null } }),
+    prisma.location.count({ where: { deletedAt: null } }),
+    prisma.category.count({ where: { deletedAt: null } }),
+    prisma.equipmentMovement.count(),
+    prisma.equipmentRequest.count(),
+    prisma.equipmentRequest.count({ where: { status: "EN_ATTENTE" } }),
+    prisma.statuslabel.findMany({
+      where: { deletedAt: null },
+      include: { _count: { select: { assets: { where: { deletedAt: null } } } } },
+    }),
   ]);
 
   return NextResponse.json({
-    totalAssets, deployedAssets, pendingAssets, archivedAssets,
-    undeployedAssets: totalAssets - deployedAssets,
-    totalLicenses, usedLicenseSeats, totalLicenseSeats,
-    availableLicenseSeats: totalLicenseSeats - usedLicenseSeats,
-    totalAccessories, totalConsumables, totalComponents, totalUsers,
+    totalAssets, totalUsers, totalLocations, totalCategories,
+    totalMovements, totalDemandes, pendingDemandes,
+    assetsByStatus: assetsByStatus.map(s => ({
+      id: s.id, name: s.name, color: s.color, count: s._count.assets,
+    })),
   });
 }

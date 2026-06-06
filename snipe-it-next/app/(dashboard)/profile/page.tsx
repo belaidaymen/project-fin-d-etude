@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/app/lib/prisma";
-import Link from "next/link";
 import UserForm from "../users/UserForm";
 
 export default async function ProfilePage() {
@@ -10,12 +9,9 @@ export default async function ProfilePage() {
   if (!session) redirect("/login");
 
   const userId = (session.user as any).id;
-  const [user, companies, locations, departments, managers] = await Promise.all([
+  const [user, locations] = await Promise.all([
     prisma.user.findFirst({ where: { id: userId } }),
-    prisma.company.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
     prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.department.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
-    prisma.user.findMany({ where: { deletedAt: null, activated: true }, orderBy: [{ firstName: "asc" }] }),
   ]);
 
   if (!user) redirect("/login");
@@ -23,16 +19,24 @@ export default async function ProfilePage() {
   return (
     <>
       <section className="content-header">
-        <h1>My Profile</h1>
-        <ol className="breadcrumb"><li><a href="/dashboard">Home</a></li><li className="active">Profile</li></ol>
+        <h1>Mon profil</h1>
+        <ol className="breadcrumb"><li><a href="/dashboard">Accueil</a></li><li className="active">Profil</li></ol>
       </section>
       <section className="content">
         <UserForm
-          user={{ ...user, employeeNum: user.employeeNum, jobTitle: user.jobTitle, phone: user.phone, mobile: user.mobile, address: user.address, city: user.city, state: user.state, country: user.country, zip: user.zip, notes: user.notes, companyId: user.companyId, locationId: user.locationId, departmentId: user.departmentId, managerId: user.managerId }}
-          companies={companies.map(c => ({ id: c.id, name: c.name }))}
+          user={{
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            jobTitle: user.jobTitle,
+            phone: user.phone,
+            activated: user.activated,
+            laboratoireId: user.laboratoireId,
+          }}
           locations={locations.map(l => ({ id: l.id, name: l.name }))}
-          departments={departments.map(d => ({ id: d.id, name: d.name }))}
-          managers={managers.map(u => ({ id: u.id, name: `${u.firstName} ${u.lastName}` }))}
         />
       </section>
     </>

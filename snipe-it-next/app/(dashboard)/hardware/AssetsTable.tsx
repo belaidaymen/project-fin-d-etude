@@ -3,19 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Edit, Trash2, Eye, ArrowUpDown, LogIn, LogOut } from "lucide-react";
+import { Search, Edit, Trash2, Eye } from "lucide-react";
 
 interface Asset {
   id: string;
   assetTag: string;
   name: string | null;
   serial: string | null;
-  model: string | null;
-  manufacturer: string | null;
+  reference: string | null;
   category: string | null;
-  status: { name: string; type: string; color: string | null } | null;
-  assignedTo: string | null;
-  assignedToId: string | null;
+  status: { name: string; color: string | null } | null;
   location: string | null;
   purchaseDate: string | null;
   purchaseCost: string | null;
@@ -31,12 +28,14 @@ interface Props {
   statusFilter: string;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  deployable: "#337ab7",
-  pending: "#f0ad4e",
-  archived: "#777",
-  undeployable: "#d9534f",
-};
+const STATUS_OPTIONS = [
+  "Disponible",
+  "En service",
+  "En maintenance",
+  "Hors service",
+  "Réservé",
+  "En prêt",
+];
 
 export default function AssetsTable({ assets, total, page, perPage, search, statusFilter }: Props) {
   const router = useRouter();
@@ -52,7 +51,7 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
   }
 
   async function handleDelete(id: string, tag: string) {
-    if (!confirm(`Delete asset ${tag}? This cannot be undone.`)) return;
+    if (!confirm(`Supprimer l'équipement ${tag} ? Cette action est irréversible.`)) return;
     await fetch(`/api/assets/${id}`, { method: "DELETE" });
     router.refresh();
   }
@@ -64,7 +63,7 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
           <input
             className="form-control"
             style={{ width: 240 }}
-            placeholder="Search assets..."
+            placeholder="Rechercher des équipements..."
             value={searchVal}
             onChange={e => setSearchVal(e.target.value)}
           />
@@ -74,7 +73,7 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
         </form>
         <select
           className="form-control"
-          style={{ width: 160 }}
+          style={{ width: 180 }}
           value={statusFilter}
           onChange={e => {
             const params = new URLSearchParams();
@@ -83,14 +82,13 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
             router.push(`/hardware?${params.toString()}`);
           }}
         >
-          <option value="">All Statuses</option>
-          <option value="deployable">Deployable</option>
-          <option value="pending">Pending</option>
-          <option value="archived">Archived</option>
-          <option value="undeployable">Undeployable</option>
+          <option value="">Tous les statuts</option>
+          {STATUS_OPTIONS.map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
         </select>
         <span style={{ marginLeft: "auto", color: "#777", fontSize: 13 }}>
-          {total.toLocaleString()} asset{total !== 1 ? "s" : ""}
+          {total.toLocaleString("fr-FR")} équipement{total !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -99,23 +97,22 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
           <thead>
             <tr>
               <th style={{ width: 30 }}><input type="checkbox" /></th>
-              <th>Asset Tag</th>
-              <th>Name</th>
-              <th>Model</th>
-              <th>Serial</th>
-              <th>Status</th>
-              <th>Checked Out To</th>
-              <th>Location</th>
-              <th>Purchase Date</th>
-              <th style={{ width: 120 }}>Actions</th>
+              <th>Étiquette</th>
+              <th>Nom</th>
+              <th>Catégorie</th>
+              <th>N° Série</th>
+              <th>Statut</th>
+              <th>Emplacement</th>
+              <th>Date d'achat</th>
+              <th style={{ width: 100 }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {assets.length === 0 ? (
               <tr>
-                <td colSpan={10} style={{ textAlign: "center", padding: "30px", color: "#999" }}>
-                  No assets found.{" "}
-                  <Link href="/hardware/create" style={{ color: "#337ab7" }}>Create one now.</Link>
+                <td colSpan={9} style={{ textAlign: "center", padding: "30px", color: "#999" }}>
+                  Aucun équipement trouvé.{" "}
+                  <Link href="/hardware/create" style={{ color: "#337ab7" }}>En créer un.</Link>
                 </td>
               </tr>
             ) : (
@@ -128,50 +125,31 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
                     </Link>
                   </td>
                   <td>{asset.name ?? <span style={{ color: "#999" }}>—</span>}</td>
-                  <td>
-                    {asset.manufacturer && <span style={{ color: "#777", fontSize: 12 }}>{asset.manufacturer} — </span>}
-                    {asset.model ?? <span style={{ color: "#999" }}>—</span>}
-                  </td>
+                  <td style={{ color: "#666", fontSize: 12 }}>{asset.category ?? <span style={{ color: "#999" }}>—</span>}</td>
                   <td style={{ fontFamily: "monospace", fontSize: 12 }}>{asset.serial ?? "—"}</td>
                   <td>
                     {asset.status ? (
                       <span
                         className="status-badge"
-                        style={{ background: asset.status.color || STATUS_COLORS[asset.status.type] || "#777" }}
+                        style={{ background: asset.status.color ?? "#777" }}
                       >
                         {asset.status.name}
                       </span>
-                    ) : "—"}
-                  </td>
-                  <td>
-                    {asset.assignedTo ? (
-                      <Link href={`/users/${asset.assignedToId}`} style={{ color: "#337ab7" }}>
-                        {asset.assignedTo}
-                      </Link>
                     ) : <span style={{ color: "#999" }}>—</span>}
                   </td>
-                  <td>{asset.location ?? "—"}</td>
-                  <td style={{ fontSize: 12 }}>{asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : "—"}</td>
+                  <td style={{ fontSize: 13 }}>{asset.location ?? <span style={{ color: "#999" }}>—</span>}</td>
+                  <td style={{ fontSize: 12 }}>{asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString("fr-FR") : "—"}</td>
                   <td>
                     <div style={{ display: "flex", gap: 3 }}>
-                      <Link href={`/hardware/${asset.id}`} className="btn btn-info btn-xs" title="View">
+                      <Link href={`/hardware/${asset.id}`} className="btn btn-info btn-xs" title="Voir">
                         <Eye size={12} />
                       </Link>
-                      <Link href={`/hardware/${asset.id}/edit`} className="btn btn-warning btn-xs" title="Edit">
+                      <Link href={`/hardware/${asset.id}/edit`} className="btn btn-warning btn-xs" title="Modifier">
                         <Edit size={12} />
                       </Link>
-                      {asset.assignedToId ? (
-                        <Link href={`/hardware/${asset.id}/checkin`} className="btn btn-primary btn-xs" title="Check In">
-                          <LogIn size={12} />
-                        </Link>
-                      ) : (
-                        <Link href={`/hardware/${asset.id}/checkout`} className="btn btn-success btn-xs" title="Check Out">
-                          <LogOut size={12} />
-                        </Link>
-                      )}
                       <button
                         className="btn btn-danger btn-xs"
-                        title="Delete"
+                        title="Supprimer"
                         onClick={() => handleDelete(asset.id, asset.assetTag)}
                       >
                         <Trash2 size={12} />
@@ -188,7 +166,7 @@ export default function AssetsTable({ assets, total, page, perPage, search, stat
       {totalPages > 1 && (
         <div style={{ padding: "10px 15px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ color: "#777", fontSize: 13 }}>
-            Showing {Math.min((page - 1) * perPage + 1, total)}–{Math.min(page * perPage, total)} of {total}
+            Affichage {Math.min((page - 1) * perPage + 1, total)}–{Math.min(page * perPage, total)} sur {total}
           </span>
           <ul className="pagination" style={{ margin: 0 }}>
             <li className={page <= 1 ? "disabled" : ""}>

@@ -16,27 +16,16 @@ export default async function SettingsPage() {
   return (
     <>
       <section className="content-header">
-        <h1>Settings <small>Site Configuration</small></h1>
+        <h1>Paramètres <small>Configuration du site</small></h1>
         <ol className="breadcrumb">
-          <li><a href="#">Home</a></li>
-          <li className="active">Settings</li>
+          <li><a href="#">Accueil</a></li>
+          <li className="active">Paramètres</li>
         </ol>
       </section>
       <section className="content">
         <SettingsClient settings={{
           id: settings.id,
           siteName: settings.siteName,
-          headerColor: settings.headerColor,
-          currency: settings.currency,
-          perPage: settings.perPage,
-          dateDisplayFormat: settings.dateDisplayFormat,
-          defaultLocale: settings.defaultLocale,
-          defaultTimezone: settings.defaultTimezone,
-          loginNote: settings.loginNote,
-          adminCc: settings.adminCc,
-          alertEmail: settings.alertEmail,
-          alertQty: settings.alertQty,
-          dashboardMessage: settings.dashboardMessage,
         }} />
       </section>
     </>

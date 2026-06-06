@@ -31,25 +31,23 @@ export async function POST(req: NextRequest) {
           username,
           email,
           password: hashedPassword,
-          isSuperAdmin: true,
+          role: "LOGISTIQUE",
           activated: true,
         },
       });
 
       await tx.setting.create({
-        data: {
-          siteName: siteName || "Snipe-IT",
-        },
+        data: { siteName: siteName || "GestActif" },
       });
 
       await tx.statuslabel.createMany({
         data: [
-          { name: "Ready to Deploy", statusType: "deployable", deployable: true, color: "#337AB7" },
-          { name: "Pending", statusType: "pending", pending: true, color: "#f0ad4e" },
-          { name: "Archived", statusType: "archived", archived: true, color: "#777777" },
-          { name: "Broken / Not Repairable", statusType: "undeployable", color: "#d9534f" },
-          { name: "Lost / Stolen", statusType: "undeployable", color: "#d9534f" },
-          { name: "Out for Repair", statusType: "undeployable", color: "#f39c12" },
+          { name: "Disponible", color: "#00a65a" },
+          { name: "En service", color: "#3c8dbc" },
+          { name: "En maintenance", color: "#f0ad4e" },
+          { name: "Hors service", color: "#d9534f" },
+          { name: "Réservé", color: "#9b59b6" },
+          { name: "En prêt", color: "#00c0ef" },
         ],
       });
     });

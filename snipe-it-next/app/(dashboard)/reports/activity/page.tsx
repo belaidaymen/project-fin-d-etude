@@ -19,8 +19,6 @@ export default async function ActivityReportPage({ searchParams }: { searchParam
     prisma.actionlog.findMany({
       where,
       include: {
-        user: { select: { id: true, firstName: true, lastName: true } },
-        admin: { select: { id: true, firstName: true, lastName: true } },
         asset: { select: { id: true, assetTag: true, name: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -31,39 +29,38 @@ export default async function ActivityReportPage({ searchParams }: { searchParam
   ]);
 
   const totalPages = Math.ceil(total / perPage);
-
   const ACTION_TYPES = ["checkout", "checkin", "create", "update", "delete", "restore"];
 
   return (
     <>
       <section className="content-header">
-        <h1>Activity Report <small>Check-In / Check-Out History</small></h1>
+        <h1>Rapport d'activité <small>Historique des actions</small></h1>
         <ol className="breadcrumb">
-          <li><Link href="/dashboard">Home</Link></li>
-          <li><Link href="/reports">Reports</Link></li>
-          <li className="active">Activity</li>
+          <li><Link href="/dashboard">Accueil</Link></li>
+          <li><Link href="/reports">Rapports</Link></li>
+          <li className="active">Activité</li>
         </ol>
       </section>
       <section className="content">
         <div className="box box-default">
           <div className="box-header with-border">
-            <h3 className="box-title">Activity Log</h3>
+            <h3 className="box-title">Journal d'activité</h3>
             <div style={{ float: "right" }}>
-              <Link href="/reports" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Back to Reports</Link>
+              <Link href="/reports" className="btn btn-default btn-sm"><ArrowLeft size={14} /> Retour</Link>
             </div>
           </div>
           <div className="box-body" style={{ padding: 0 }}>
             <div style={{ padding: "10px 15px", borderBottom: "1px solid #d2d6de", display: "flex", gap: 10, alignItems: "center" }}>
               <form method="GET" style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <label style={{ fontWeight: 400, color: "#555", margin: 0 }}>Filter by action:</label>
+                <label style={{ fontWeight: 400, color: "#555", margin: 0 }}>Filtrer par action :</label>
                 <select name="action" className="form-control" style={{ width: 160 }} defaultValue={actionFilter}>
-                  <option value="">All Actions</option>
+                  <option value="">Toutes</option>
                   {ACTION_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
-                <button type="submit" className="btn btn-default btn-sm">Filter</button>
-                {actionFilter && <Link href="/reports/activity" className="btn btn-default btn-sm">Clear</Link>}
+                <button type="submit" className="btn btn-default btn-sm">Filtrer</button>
+                {actionFilter && <Link href="/reports/activity" className="btn btn-default btn-sm">Effacer</Link>}
               </form>
-              <span style={{ marginLeft: "auto", color: "#777", fontSize: 13 }}>{total.toLocaleString()} activities</span>
+              <span style={{ marginLeft: "auto", color: "#777", fontSize: 13 }}>{total.toLocaleString("fr-FR")} actions</span>
             </div>
 
             <div className="table-responsive">
@@ -71,16 +68,14 @@ export default async function ActivityReportPage({ searchParams }: { searchParam
                 <thead>
                   <tr>
                     <th>Action</th>
-                    <th>Asset</th>
-                    <th>Target User</th>
-                    <th>Performed By</th>
+                    <th>Équipement</th>
                     <th>Note</th>
                     <th>Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {logs.length === 0 ? (
-                    <tr><td colSpan={6} style={{ textAlign: "center", padding: 30, color: "#999" }}>No activity found.</td></tr>
+                    <tr><td colSpan={4} style={{ textAlign: "center", padding: 30, color: "#999" }}>Aucune activité trouvée.</td></tr>
                   ) : logs.map(log => (
                     <tr key={log.id}>
                       <td>
@@ -102,23 +97,9 @@ export default async function ActivityReportPage({ searchParams }: { searchParam
                           </Link>
                         ) : <span className="text-muted">—</span>}
                       </td>
-                      <td>
-                        {log.user ? (
-                          <Link href={`/users/${log.user.id}`} style={{ color: "#337ab7" }}>
-                            {log.user.firstName} {log.user.lastName}
-                          </Link>
-                        ) : <span className="text-muted">—</span>}
-                      </td>
-                      <td>
-                        {log.admin ? (
-                          <Link href={`/users/${log.admin.id}`} style={{ color: "#337ab7" }}>
-                            {log.admin.firstName} {log.admin.lastName}
-                          </Link>
-                        ) : <span className="text-muted">System</span>}
-                      </td>
                       <td style={{ color: "#777", fontSize: 12, maxWidth: 200 }}>{log.note ?? "—"}</td>
                       <td style={{ color: "#777", fontSize: 12, whiteSpace: "nowrap" }}>
-                        {new Date(log.createdAt).toLocaleString()}
+                        {new Date(log.createdAt).toLocaleString("fr-FR")}
                       </td>
                     </tr>
                   ))}
