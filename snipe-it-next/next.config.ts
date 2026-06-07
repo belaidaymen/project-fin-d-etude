@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["*.replit.dev", "*.replit.app"],
+    },
+  },
   allowedDevOrigins: [
     "*.spock.replit.dev",
     "*.worf.replit.dev",
@@ -9,11 +14,6 @@ const nextConfig: NextConfig = {
     "*.replit.dev",
     "*.replit.app",
   ],
-  experimental: {
-    serverActions: {
-      allowedOrigins: ["*.replit.dev", "*.replit.app"],
-    },
-  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },
