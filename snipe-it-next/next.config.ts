@@ -4,6 +4,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  turbopack: {
+    root: "/home/runner/workspace/snipe-it-next",
+  },
   experimental: {
     serverActions: {
       allowedOrigins: ["*.replit.dev", "*.replit.app"],
