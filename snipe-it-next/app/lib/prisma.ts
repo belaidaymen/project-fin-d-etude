@@ -13,7 +13,7 @@ function extractUrl(raw: string | undefined): string | undefined {
 }
 
 function createPrismaClient() {
-  const connectionString = extractUrl(process.env.SUPABASE_DATABASE_URL) || process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL;
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({

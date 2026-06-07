@@ -7,13 +7,6 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: (() => {
-      const raw = process.env["SUPABASE_DATABASE_URL"];
-      if (raw) {
-        const match = raw.match(/(postgres(?:ql)?:\/\/\S+)/);
-        return match ? match[1] : raw;
-      }
-      return process.env["DATABASE_URL"];
-    })(),
+    url: process.env["DATABASE_URL"],
   },
 });
