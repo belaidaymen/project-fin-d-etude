@@ -5,12 +5,13 @@ import { prisma } from "@/app/lib/prisma";
 import Link from "next/link";
 import { Edit, ArrowLeft } from "lucide-react";
 
-export default async function StatusLabelDetailPage({ params }: { params: { id: string } }) {
+export default async function StatusLabelDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   const label = await prisma.statuslabel.findFirst({
-    where: { id: params.id, deletedAt: null },
+    where: { id: id, deletedAt: null },
     include: { assets: { where: { deletedAt: null }, take: 20 } },
   });
   if (!label) notFound();

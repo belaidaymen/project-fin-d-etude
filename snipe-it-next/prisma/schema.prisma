@@ -14,23 +14,24 @@ enum Role {
 }
 
 model User {
-  id          String  @id @default(cuid())
-  firstName   String
-  lastName    String
-  username    String  @unique
-  email       String  @unique
-  password    String
-  role        Role    @default(LOGISTIQUE)
-  jobTitle    String?
-  phone       String?
-  activated   Boolean @default(true)
+  id        String  @id @default(cuid())
+  firstName String
+  lastName  String
+  username  String  @unique
+  email     String  @unique
+  password  String
+  role      Role    @default(LOGISTIQUE)
+  jobTitle  String?
+  phone     String?
+  activated Boolean @default(true)
 
   laboratoireId String?
   laboratoire   Location? @relation("LabManagerUser", fields: [laboratoireId], references: [id])
 
-  equipmentRequests EquipmentRequest[] @relation("Requester")
-  reviewedRequests  EquipmentRequest[] @relation("Reviewer")
-  mouvements        EquipmentMovement[]
+  equipmentRequests  EquipmentRequest[]  @relation("Requester")
+  reviewedRequests   EquipmentRequest[]  @relation("Reviewer")
+  mouvements         EquipmentMovement[]
+  managedDepartments Department[]        @relation("DepartmentManager")
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -40,21 +41,31 @@ model User {
 }
 
 model Location {
-  id      String  @id @default(cuid())
-  name    String
-  type    String  @default("LOCATION")
-  address String?
-  notes   String?
+  id       String  @id @default(cuid())
+  name     String
+  type     String  @default("LOCATION")
+  address  String?
+  address2 String?
+  city     String?
+  state    String?
+  country  String?
+  zip      String?
+  phone    String?
+  notes    String?
 
   parentId String?
   parent   Location?  @relation("LocationParent", fields: [parentId], references: [id])
   children Location[] @relation("LocationParent")
 
-  labManagers    User[]             @relation("LabManagerUser")
+  users          User[]              @relation("LabManagerUser")
   assets         Asset[]
   requests       EquipmentRequest[]
   mouvementsFrom EquipmentMovement[] @relation("MoveFrom")
   mouvementsTo   EquipmentMovement[] @relation("MoveTo")
+  accessories    Accessory[]
+  components     Component[]
+  consumables    Consumable[]
+  departments    Department[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -68,7 +79,12 @@ model Category {
   name  String
   notes String?
 
-  assets Asset[]
+  assets      Asset[]
+  accessories Accessory[]
+  components  Component[]
+  consumables Consumable[]
+  licenses    License[]
+  assetModels AssetModel[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -92,6 +108,118 @@ model Statuslabel {
   @@map("status_labels")
 }
 
+model Manufacturer {
+  id           String  @id @default(cuid())
+  name         String
+  url          String?
+  supportUrl   String?
+  supportPhone String?
+  supportEmail String?
+  notes        String?
+
+  assets      Asset[]
+  accessories Accessory[]
+  components  Component[]
+  consumables Consumable[]
+  licenses    License[]
+  assetModels AssetModel[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("manufacturers")
+}
+
+model Supplier {
+  id      String  @id @default(cuid())
+  name    String
+  address String?
+  city    String?
+  state   String?
+  country String?
+  zip     String?
+  phone   String?
+  fax     String?
+  email   String?
+  contact String?
+  url     String?
+  notes   String?
+
+  accessories  Accessory[]
+  components   Component[]
+  consumables  Consumable[]
+  licenses     License[]
+  maintenances Maintenance[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("suppliers")
+}
+
+model Company {
+  id    String  @id @default(cuid())
+  name  String
+  phone String?
+  fax   String?
+  email String?
+  image String?
+  notes String?
+
+  assets      Asset[]
+  accessories Accessory[]
+  components  Component[]
+  consumables Consumable[]
+  licenses    License[]
+  departments Department[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("companies")
+}
+
+model Depreciation {
+  id     String @id @default(cuid())
+  name   String
+  months Int
+
+  assetModels AssetModel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("depreciations")
+}
+
+model AssetModel {
+  id            String  @id @default(cuid())
+  name          String
+  modelNumber   String?
+  notes         String?
+  requestable   Boolean @default(false)
+  requireSerial Boolean @default(false)
+  minAmt        Int?
+  eol           Int?
+
+  manufacturerId String?
+  categoryId     String?
+  depreciationId String?
+
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  depreciation Depreciation? @relation(fields: [depreciationId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("asset_models")
+}
+
 model Asset {
   id           String    @id @default(cuid())
   assetTag     String    @unique
@@ -103,22 +231,211 @@ model Asset {
   notes        String?
   quantity     Int       @default(1)
 
-  categoryId String?
-  locationId String?
-  statusId   String?
+  categoryId     String?
+  locationId     String?
+  statusId       String?
+  manufacturerId String?
+  companyId      String?
 
-  category Category?    @relation(fields: [categoryId], references: [id])
-  location Location?    @relation(fields: [locationId], references: [id])
-  status   Statuslabel? @relation(fields: [statusId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  status       Statuslabel?  @relation(fields: [statusId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  company      Company?      @relation(fields: [companyId], references: [id])
 
-  mouvements EquipmentMovement[]
-  actionlogs Actionlog[]
+  mouvements   EquipmentMovement[]
+  actionlogs   Actionlog[]
+  maintenances Maintenance[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@map("assets")
+}
+
+model Accessory {
+  id           String    @id @default(cuid())
+  name         String
+  modelNumber  String?
+  qty          Int       @default(0)
+  minAmt       Int?
+  purchaseDate DateTime?
+  purchaseCost Decimal?  @db.Decimal(10, 2)
+  orderNumber  String?
+  notes        String?
+  requestable  Boolean   @default(false)
+
+  companyId      String?
+  locationId     String?
+  categoryId     String?
+  manufacturerId String?
+  supplierId     String?
+
+  company      Company?      @relation(fields: [companyId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("accessories")
+}
+
+model Component {
+  id           String    @id @default(cuid())
+  name         String
+  modelNumber  String?
+  serial       String?
+  qty          Int       @default(0)
+  minAmt       Int?
+  purchaseDate DateTime?
+  purchaseCost Decimal?  @db.Decimal(10, 2)
+  orderNumber  String?
+  notes        String?
+
+  companyId      String?
+  locationId     String?
+  categoryId     String?
+  manufacturerId String?
+  supplierId     String?
+
+  company      Company?      @relation(fields: [companyId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("components")
+}
+
+model Consumable {
+  id           String    @id @default(cuid())
+  name         String
+  modelNumber  String?
+  itemNo       String?
+  qty          Int       @default(0)
+  minAmt       Int?
+  purchaseDate DateTime?
+  purchaseCost Decimal?  @db.Decimal(10, 2)
+  orderNumber  String?
+  notes        String?
+  requestable  Boolean   @default(false)
+
+  companyId      String?
+  locationId     String?
+  categoryId     String?
+  manufacturerId String?
+  supplierId     String?
+
+  company      Company?      @relation(fields: [companyId], references: [id])
+  location     Location?     @relation(fields: [locationId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("consumables")
+}
+
+model Department {
+  id    String  @id @default(cuid())
+  name  String
+  phone String?
+  fax   String?
+  notes String?
+
+  companyId  String?
+  locationId String?
+  managerId  String?
+
+  company   Company?  @relation(fields: [companyId], references: [id])
+  location  Location? @relation(fields: [locationId], references: [id])
+  manager   User?     @relation("DepartmentManager", fields: [managerId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("departments")
+}
+
+model License {
+  id             String    @id @default(cuid())
+  name           String
+  serial         String?
+  seats          Int       @default(1)
+  licenseName    String?
+  licenseEmail   String?
+  reassignable   Boolean   @default(true)
+  maintained     Boolean   @default(false)
+  notes          String?
+  orderNumber    String?
+  purchaseOrder  String?
+  purchaseDate   DateTime?
+  purchaseCost   Decimal?  @db.Decimal(10, 2)
+  expirationDate DateTime?
+
+  manufacturerId String?
+  supplierId     String?
+  categoryId     String?
+  companyId      String?
+
+  manufacturer Manufacturer? @relation(fields: [manufacturerId], references: [id])
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id])
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  company      Company?      @relation(fields: [companyId], references: [id])
+
+  licenseSeats LicenseSeat[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@map("licenses")
+}
+
+model LicenseSeat {
+  id        String @id @default(cuid())
+  seatNum   Int
+  licenseId String
+  license   License @relation(fields: [licenseId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("license_seats")
+}
+
+model Maintenance {
+  id              String    @id @default(cuid())
+  title           String
+  maintenanceType String    @default("Maintenance")
+  startDate       DateTime
+  completionDate  DateTime?
+  cost            Decimal?  @db.Decimal(10, 2)
+  notes           String?
+  isWarranty      Boolean   @default(false)
+
+  assetId    String
+  supplierId String?
+
+  asset    Asset     @relation(fields: [assetId], references: [id])
+  supplier Supplier? @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("maintenances")
 }
 
 model EquipmentRequest {

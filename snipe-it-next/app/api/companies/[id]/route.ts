@@ -3,22 +3,24 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const item = await prisma.company.findFirst({ where: { id: params.id, deletedAt: null } });
+  const item = await prisma.company.findFirst({ where: { id: id, deletedAt: null } });
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(item);
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const body = await req.json();
     const { name, phone, fax, email, image, notes } = body;
     const item = await prisma.company.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { name, phone: phone || null, fax: fax || null, email: email || null, image: image || null, notes: notes || null },
     });
     return NextResponse.json(item);
@@ -27,9 +29,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  await prisma.company.update({ where: { id: params.id }, data: { deletedAt: new Date() } });
+  await prisma.company.update({ where: { id: id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ success: true });
 }

@@ -5,11 +5,12 @@ import { prisma } from "@/app/lib/prisma";
 import EntityForm from "@/components/forms/EntityForm";
 import Link from "next/link";
 
-export default async function EditLocationPage({ params }: { params: { id: string } }) {
+export default async function EditLocationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
   const [item, parents] = await Promise.all([
-    prisma.location.findFirst({ where: { id: params.id, deletedAt: null } }),
+    prisma.location.findFirst({ where: { id: id, deletedAt: null } }),
     prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
   ]);
   if (!item) notFound();
@@ -31,7 +32,7 @@ export default async function EditLocationPage({ params }: { params: { id: strin
             { name: "country", label: "Country", type: "text" },
             { name: "zip", label: "Zip/Postal Code", type: "text" },
             { name: "phone", label: "Phone", type: "text" },
-            { name: "parentId", label: "Emplacement parent", type: "select", options: parents.filter(p => p.id !== params.id).map(p => ({ value: p.id, label: p.name })) },
+            { name: "parentId", label: "Emplacement parent", type: "select", options: parents.filter(p => p.id !== id).map(p => ({ value: p.id, label: p.name })) },
           ]}
         />
       </section>

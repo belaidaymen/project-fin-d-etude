@@ -1,0 +1,3 @@
+- [Next.js 16 route params](nextjs16-params.md) — params in route handlers and pages are now Promise<{id}>, must await them
+- [SWC binary corruption](swc-binary.md) — corrupted @next/swc binary causes SIGBUS; reinstall @next/swc-linux-x64-gnu to fix
+- [Supabase URL parsing](supabase-url.md) — SUPABASE_DATABASE_URL secret may contain extra text; extract URL with regex before use

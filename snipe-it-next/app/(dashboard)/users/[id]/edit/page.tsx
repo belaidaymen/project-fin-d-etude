@@ -5,12 +5,13 @@ import { prisma } from "@/app/lib/prisma";
 import UserForm from "../../UserForm";
 import Link from "next/link";
 
-export default async function EditUserPage({ params }: { params: { id: string } }) {
+export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   const [user, locations] = await Promise.all([
-    prisma.user.findFirst({ where: { id: params.id, deletedAt: null } }),
+    prisma.user.findFirst({ where: { id: id, deletedAt: null } }),
     prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
   ]);
 

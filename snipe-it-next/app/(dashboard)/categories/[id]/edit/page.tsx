@@ -5,10 +5,11 @@ import { prisma } from "@/app/lib/prisma";
 import EntityForm from "@/components/forms/EntityForm";
 import Link from "next/link";
 
-export default async function EditCategoryPage({ params }: { params: { id: string } }) {
+export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
-  const item = await prisma.category.findFirst({ where: { id: params.id, deletedAt: null } });
+  const item = await prisma.category.findFirst({ where: { id: id, deletedAt: null } });
   if (!item) notFound();
   return (
     <>

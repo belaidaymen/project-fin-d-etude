@@ -5,12 +5,13 @@ import { prisma } from "@/app/lib/prisma";
 import AssetForm from "../../AssetForm";
 import Link from "next/link";
 
-export default async function EditAssetPage({ params }: { params: { id: string } }) {
+export default async function EditAssetPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   const [asset, categories, statuses, locations] = await Promise.all([
-    prisma.asset.findFirst({ where: { id: params.id, deletedAt: null } }),
+    prisma.asset.findFirst({ where: { id: id, deletedAt: null } }),
     prisma.category.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
     prisma.statuslabel.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),
     prisma.location.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }),

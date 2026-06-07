@@ -6,12 +6,13 @@ import Link from "next/link";
 import { Edit, ArrowLeft } from "lucide-react";
 import DeleteUserButton from "./DeleteUserButton";
 
-export default async function UserDetailPage({ params }: { params: { id: string } }) {
+export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   const user = await prisma.user.findFirst({
-    where: { id: params.id, deletedAt: null },
+    where: { id: id, deletedAt: null },
     include: { laboratoire: true },
   });
 

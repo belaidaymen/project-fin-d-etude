@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -11,12 +12,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body = await req.json();
     const { statusId, locationId, note } = body;
 
-    const asset = await prisma.asset.findFirst({ where: { id: params.id, deletedAt: null } });
+    const asset = await prisma.asset.findFirst({ where: { id: id, deletedAt: null } });
     if (!asset) return NextResponse.json({ error: "Équipement introuvable" }, { status: 404 });
 
     const updated = await prisma.$transaction(async tx => {
       const updatedAsset = await tx.asset.update({
-        where: { id: params.id },
+        where: { id: id },
         data: {
           statusId: statusId || asset.statusId,
           locationId: locationId || asset.locationId,
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       await tx.actionlog.create({
         data: {
           actionType: "checkin",
-          assetId: params.id,
+          assetId: id,
           note: note || null,
         },
       });

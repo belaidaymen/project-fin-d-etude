@@ -6,12 +6,13 @@ import Link from "next/link";
 import { Edit, Trash2, ArrowLeft } from "lucide-react";
 import DeleteAssetButton from "./DeleteAssetButton";
 
-export default async function AssetDetailPage({ params }: { params: { id: string } }) {
+export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   const asset = await prisma.asset.findFirst({
-    where: { id: params.id, deletedAt: null },
+    where: { id: id, deletedAt: null },
     include: {
       category: true,
       status: true,

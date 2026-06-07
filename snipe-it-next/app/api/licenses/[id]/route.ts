@@ -3,15 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import { prisma } from "@/app/lib/prisma";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const license = await prisma.license.findFirst({ where: { id: params.id, deletedAt: null }, include: { manufacturer: true, licenseSeats: { include: { user: true } } } });
+  const license = await prisma.license.findFirst({ where: { id: id, deletedAt: null }, include: { manufacturer: true, licenseSeats: true } });
   if (!license) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(license);
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
@@ -20,7 +22,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       orderNumber, purchaseOrder, purchaseDate, purchaseCost, expirationDate,
       manufacturerId, supplierId, categoryId, companyId } = body;
     const license = await prisma.license.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         name, serial: serial || null, seats: seats || 1, licenseName: licenseName || null,
         licenseEmail: licenseEmail || null, reassignable: reassignable ?? true,
@@ -39,9 +41,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  await prisma.license.update({ where: { id: params.id }, data: { deletedAt: new Date() } });
+  await prisma.license.update({ where: { id: id }, data: { deletedAt: new Date() } });
   return NextResponse.json({ success: true });
 }
