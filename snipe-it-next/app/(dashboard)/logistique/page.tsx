@@ -83,7 +83,7 @@ export default async function LogistiqueDashboard() {
   const demandesTypeSummary = Object.fromEntries(demandesParType.map(d => [d.type, d._count.id]));
 
   return (
-    <div className="content-header" style={{ padding: 0 }}>
+    <div style={{ padding: 0 }}>
       <div style={{ background: "#3c8dbc", padding: "20px 24px 60px", color: "white" }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 300 }}>
           <b style={{ fontWeight: 700 }}>Tableau de bord</b> — Responsable Logistique
