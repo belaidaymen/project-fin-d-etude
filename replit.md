@@ -10,7 +10,7 @@ A full IT asset management system built with Next.js, migrated from the PHP/Lara
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router, Turbopack)
-- **Database**: PostgreSQL via Replit's built-in DB, accessed through Prisma 7
+- **Database**: PostgreSQL, accessed through Prisma 7
 - **Auth**: NextAuth v4 with credentials provider
 - **Styling**: Tailwind CSS v4 + custom AdminLTE-style CSS (globals.css)
 - **Charts**: Recharts
@@ -18,12 +18,11 @@ A full IT asset management system built with Next.js, migrated from the PHP/Lara
 
 ## Running the App
 
-The workflow `Start application` runs:
-```
-cd snipe-it-next && npm run dev -- -p 5000
+```bash
+cd snipe-it-next && npm run dev
 ```
 
-The app serves on port 5000.
+The app serves on port 3000.
 
 ## Default Login
 
@@ -54,7 +53,7 @@ After the app is deployed for the first time with no users:
 
 ## Environment Variables
 
-Set in Replit Secrets:
+Required environment variables:
 - `DATABASE_URL` — PostgreSQL connection string
 - `NEXTAUTH_SECRET` — Secret for NextAuth JWT signing
 - `NEXTAUTH_URL` — Full URL of the deployed app
