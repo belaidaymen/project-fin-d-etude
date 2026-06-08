@@ -4,7 +4,7 @@ set -e
 cd snipe-it-next
 
 echo "Installing dependencies..."
-npm ci
+npm install --prefer-offline --no-audit
 
 echo "Generating Prisma client..."
 npx prisma generate
